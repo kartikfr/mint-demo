@@ -145,10 +145,20 @@ const CardGenius = () => {
           sortedSavings.map(async (saving: any) => {
             try {
               const cardDetails = await cardService.getCardDetails(saving.card_alias);
+              console.log('Card details for', saving.card_alias, ':', cardDetails);
+              
+              // card_bg_image might be in the saving object or cardDetails.data
+              const cardBgImage = saving.card_bg_image 
+                || cardDetails.data?.card_bg_image 
+                || cardDetails.data?.card_image
+                || cardDetails.data?.image;
+              
+              console.log('Card bg image:', cardBgImage);
+              
               return {
-                card_name: cardDetails.data?.card_name || saving.card_alias,
-                card_bg_image: cardDetails.data?.card_bg_image,
-                joining_fees: cardDetails.data?.annual_fees || 0,
+                card_name: cardDetails.data?.card_name || saving.card_name || saving.card_alias,
+                card_bg_image: cardBgImage,
+                joining_fees: cardDetails.data?.annual_fees || cardDetails.data?.joining_fees || 0,
                 total_savings: saving.total_savings || 0,
                 total_savings_yearly: saving.total_savings_yearly || 0,
                 total_extra_benefits: saving.total_extra_benefits || 0,
@@ -157,7 +167,8 @@ const CardGenius = () => {
             } catch (error) {
               console.error(`Error fetching details for ${saving.card_alias}:`, error);
               return {
-                card_name: saving.card_alias,
+                card_name: saving.card_name || saving.card_alias,
+                card_bg_image: saving.card_bg_image,
                 joining_fees: 0,
                 total_savings: saving.total_savings || 0,
                 total_savings_yearly: saving.total_savings_yearly || 0,
