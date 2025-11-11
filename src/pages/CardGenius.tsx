@@ -104,6 +104,7 @@ const CardGenius = () => {
   const [expandedCards, setExpandedCards] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<'quick' | 'detailed'>('quick');
   const [selectedCard, setSelectedCard] = useState<CardResult | null>(null);
+  const [showLifetimeFreeOnly, setShowLifetimeFreeOnly] = useState(false);
 
   const currentQuestion = questions[currentStep];
   const progress = ((currentStep + 1) / questions.length) * 100;
@@ -460,6 +461,16 @@ const CardGenius = () => {
       );
     }
 
+    // Filter results based on lifetime free filter
+    const filteredResults = showLifetimeFreeOnly 
+      ? results.filter(card => card.joining_fees === 0)
+      : results;
+
+    // Get categories where user has spending (non-zero responses)
+    const spendingCategories = Object.entries(responses)
+      .filter(([_, value]) => value > 0)
+      .map(([key]) => key);
+
     // Results list view
     return (
       <div className="min-h-screen bg-background">
@@ -509,7 +520,11 @@ const CardGenius = () => {
             <Button variant="outline" size="sm" className="gap-2">
               Eligibility <ChevronDown className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant={showLifetimeFreeOnly ? "default" : "outline"} 
+              size="sm"
+              onClick={() => setShowLifetimeFreeOnly(!showLifetimeFreeOnly)}
+            >
               Lifetime Free Cards
             </Button>
           </div>
@@ -553,21 +568,33 @@ const CardGenius = () => {
                 <table className="w-full">
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="text-left p-4 font-semibold text-sm text-foreground">Credit Cards</th>
-                      <th className="text-center p-4 font-semibold text-sm text-foreground">
-                        <div className="flex items-center justify-center gap-1">
-                          Total Savings
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="w-4 h-4 text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs">
-                              <p>Total annual savings from rewards, cashback, and points earned on all your spending categories</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      </th>
-                      <th className="text-center p-4 font-semibold text-sm text-foreground">
+                      <th className="text-left p-4 font-semibold text-sm text-foreground whitespace-nowrap">Credit Cards</th>
+                      {/* Dynamic category columns */}
+                      {spendingCategories.map(category => {
+                        const displayName = questions.find(q => q.field === category)?.question
+                          .replace('How much do you spend on ', '')
+                          .replace('How much do you spend at ', '')
+                          .replace('How much do you spend ', '')
+                          .replace(' in a month?', '')
+                          .replace(' in a year?', '')
+                          .replace(' every month?', '')
+                          .replace(' monthly?', '')
+                          .replace(' annually?', '')
+                          .replace("What's your average ", '')
+                          .replace('And what about your ', '')
+                          .replace('How much do you pay for ', '')
+                          .replace('How much do you pay in ', '')
+                          .replace('How often do you visit ', '')
+                          .replace('Plus, what about ', '')
+                          || category.replace(/_/g, ' ');
+                        
+                        return (
+                          <th key={category} className="text-center p-4 font-semibold text-sm text-foreground whitespace-nowrap">
+                            {displayName}
+                          </th>
+                        );
+                      })}
+                      <th className="text-center p-4 font-semibold text-sm text-foreground whitespace-nowrap">
                         <div className="flex items-center justify-center gap-1">
                           Milestone Benefits
                           <Tooltip>
@@ -580,7 +607,7 @@ const CardGenius = () => {
                           </Tooltip>
                         </div>
                       </th>
-                      <th className="text-center p-4 font-semibold text-sm text-foreground">
+                      <th className="text-center p-4 font-semibold text-sm text-foreground whitespace-nowrap">
                         <div className="flex items-center justify-center gap-1">
                           Joining Fees
                           <Tooltip>
@@ -593,7 +620,7 @@ const CardGenius = () => {
                           </Tooltip>
                         </div>
                       </th>
-                      <th className="text-center p-4 font-semibold text-sm text-foreground">
+                      <th className="text-center p-4 font-semibold text-sm text-foreground whitespace-nowrap">
                         <div className="flex items-center justify-center gap-1">
                           Net Savings
                           <Tooltip>
@@ -609,7 +636,7 @@ const CardGenius = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {results.map((card, index) => {
+                    {filteredResults.map((card, index) => {
                       return (
                         <tr 
                           key={index} 
@@ -629,20 +656,27 @@ const CardGenius = () => {
                                 }}
                               />
                               <div>
-                                <p className="font-semibold text-foreground">{card.card_name}</p>
+                                <p className="font-semibold text-foreground whitespace-nowrap">{card.card_name}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="p-4 text-center font-semibold text-green-600">
-                            ₹{card.total_savings_yearly.toLocaleString()}
-                          </td>
-                          <td className="p-4 text-center font-semibold text-blue-600">
+                          {/* Dynamic category savings */}
+                          {spendingCategories.map(category => {
+                            const breakdown = card.spending_breakdown[category];
+                            const yearlySavings = breakdown?.savings ? breakdown.savings * 12 : 0;
+                            return (
+                              <td key={category} className="p-4 text-center font-semibold text-green-600 whitespace-nowrap">
+                                ₹{yearlySavings.toLocaleString()}
+                              </td>
+                            );
+                          })}
+                          <td className="p-4 text-center font-semibold text-blue-600 whitespace-nowrap">
                             ₹{card.total_extra_benefits.toLocaleString()}
                           </td>
-                          <td className="p-4 text-center font-semibold text-red-600">
+                          <td className="p-4 text-center font-semibold text-red-600 whitespace-nowrap">
                             ₹{card.joining_fees.toLocaleString()}
                           </td>
-                          <td className="p-4 text-center">
+                          <td className="p-4 text-center whitespace-nowrap">
                             <div className="flex items-center justify-center gap-2">
                               <span className="font-bold text-lg text-green-700">
                                 ₹{card.net_savings.toLocaleString()}
