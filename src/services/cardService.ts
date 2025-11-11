@@ -28,7 +28,7 @@ export const cardService = {
   async getInitBundle() {
     const response = await authManager.makeAuthenticatedRequest(
       `${BASE_URL}/cardgenius/init-bundle`,
-      { method: 'POST', body: JSON.stringify({}) }
+      { method: 'GET' }
     );
     return response.json();
   },
