@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SpendingInput } from "@/components/ui/spending-input";
-import { ArrowLeft, ArrowRight, Sparkles, ChevronDown, Info } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, ChevronDown, Info, Check } from "lucide-react";
 import { cardService } from "@/services/cardService";
 import type { SpendingData } from "@/services/cardService";
 import { useToast } from "@/hooks/use-toast";
@@ -74,6 +74,10 @@ interface CardResult {
   total_savings: number;
   total_savings_yearly: number;
   total_extra_benefits: number;
+  net_savings: number;
+  voucher_of: number;
+  voucher_bonus: number;
+  welcome_benefits: string[];
   spending_breakdown: {
     [key: string]: {
       on: string;
@@ -137,12 +141,9 @@ const CardGenius = () => {
       if (response.data && response.data.savings && Array.isArray(response.data.savings)) {
         // Sort by total_savings_yearly
         const sortedSavings = response.data.savings
-          .sort((a: any, b: any) => (b.total_savings_yearly || 0) - (a.total_savings_yearly || 0))
-          .slice(0, 3);
-
-        // Fetch card details for each
+        // Fetch card details for ALL cards
         const cardsWithDetails = await Promise.all(
-          sortedSavings.map(async (saving: any) => {
+          response.data.savings.map(async (saving: any) => {
             try {
               const cardDetails = await cardService.getCardDetails(saving.card_alias);
               console.log('Card details for', saving.card_alias, ':', cardDetails);
@@ -155,31 +156,52 @@ const CardGenius = () => {
               
               console.log('Card bg image:', cardBgImage);
               
+              const joiningFees = parseInt(saving.joining_fees) || 0;
+              const totalSavingsYearly = saving.total_savings_yearly || 0;
+              const totalExtraBenefits = saving.total_extra_benefits || 0;
+              const netSavings = totalSavingsYearly + totalExtraBenefits - joiningFees;
+              
               return {
                 card_name: cardDetails.data?.card_name || saving.card_name || saving.card_alias,
                 card_bg_image: cardBgImage,
-                joining_fees: parseInt(saving.joining_fees) || 0,
+                joining_fees: joiningFees,
                 total_savings: saving.total_savings || 0,
-                total_savings_yearly: saving.total_savings_yearly || 0,
-                total_extra_benefits: saving.total_extra_benefits || 0,
+                total_savings_yearly: totalSavingsYearly,
+                total_extra_benefits: totalExtraBenefits,
+                net_savings: netSavings,
+                voucher_of: saving.voucher_of || 0,
+                voucher_bonus: saving.voucher_bonus || 0,
+                welcome_benefits: cardDetails.data?.welcome_benefits || saving.welcome_benefits || [],
                 spending_breakdown: saving.spending_breakdown || {}
               };
             } catch (error) {
               console.error(`Error fetching details for ${saving.card_alias}:`, error);
+              const joiningFees = parseInt(saving.joining_fees) || 0;
+              const totalSavingsYearly = saving.total_savings_yearly || 0;
+              const totalExtraBenefits = saving.total_extra_benefits || 0;
+              const netSavings = totalSavingsYearly + totalExtraBenefits - joiningFees;
+              
               return {
                 card_name: saving.card_name || saving.card_alias,
                 card_bg_image: saving.card_bg_image,
-                joining_fees: parseInt(saving.joining_fees) || 0,
+                joining_fees: joiningFees,
                 total_savings: saving.total_savings || 0,
-                total_savings_yearly: saving.total_savings_yearly || 0,
-                total_extra_benefits: saving.total_extra_benefits || 0,
+                total_savings_yearly: totalSavingsYearly,
+                total_extra_benefits: totalExtraBenefits,
+                net_savings: netSavings,
+                voucher_of: saving.voucher_of || 0,
+                voucher_bonus: saving.voucher_bonus || 0,
+                welcome_benefits: saving.welcome_benefits || [],
                 spending_breakdown: saving.spending_breakdown || {}
               };
             }
           })
         );
 
-        setResults(cardsWithDetails);
+        // Sort by net savings in descending order
+        const sortedCards = cardsWithDetails.sort((a, b) => b.net_savings - a.net_savings);
+
+        setResults(sortedCards);
         setShowResults(true);
       } else {
         toast({
@@ -207,6 +229,12 @@ const CardGenius = () => {
         ? prev.filter(i => i !== index)
         : [...prev, index]
     );
+  };
+
+  const handleCardSelect = (card: any) => {
+    setSelectedCard(card);
+    // Smooth scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handlePrev = () => {
@@ -276,13 +304,40 @@ const CardGenius = () => {
                   
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-foreground">Your Net Savings</span>
-                    <span className="text-2xl font-bold text-green-600">₹{(selectedCard.total_savings_yearly + selectedCard.total_extra_benefits - selectedCard.joining_fees).toLocaleString()}</span>
+                    <span className="text-2xl font-bold text-green-600">₹{selectedCard.net_savings.toLocaleString()}</span>
                   </div>
                 </div>
 
                 <Button className="w-full" size="lg">Apply Now</Button>
               </div>
             </div>
+
+            {/* Welcome Benefits Section */}
+            {selectedCard.welcome_benefits && selectedCard.welcome_benefits.length > 0 && (
+              <div className="bg-white rounded-xl border border-border p-6 mb-8">
+                <h2 className="text-xl font-bold text-foreground mb-4">Welcome Benefits</h2>
+                <div className="space-y-3">
+                  {selectedCard.voucher_of > 0 && (
+                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                      <span className="text-sm text-foreground">Voucher Value</span>
+                      <span className="text-lg font-semibold text-green-600">₹{selectedCard.voucher_of.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {selectedCard.voucher_bonus > 0 && (
+                    <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                      <span className="text-sm text-foreground">Bonus Amount</span>
+                      <span className="text-lg font-semibold text-blue-600">₹{selectedCard.voucher_bonus.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {selectedCard.welcome_benefits.map((benefit: string, idx: number) => (
+                    <div key={idx} className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-sm text-foreground">{benefit}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Savings Breakdown */}
             <div className="bg-white rounded-xl border border-border p-6">
@@ -528,13 +583,13 @@ const CardGenius = () => {
                   </thead>
                   <tbody>
                     {results.map((card, index) => {
-                      const netSavings = card.total_savings_yearly + card.total_extra_benefits - card.joining_fees;
                       return (
                         <tr 
                           key={index} 
-                          className={`border-t border-border hover:bg-muted/30 transition-colors ${
+                          className={`border-t border-border hover:bg-muted/30 transition-colors cursor-pointer ${
                             index === 0 ? 'bg-green-50/50' : ''
                           }`}
+                          onClick={() => handleCardSelect(card)}
                         >
                           <td className="p-4">
                             <div className="flex items-center gap-4">
@@ -551,26 +606,20 @@ const CardGenius = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="p-4 text-center font-semibold text-foreground">
+                          <td className="p-4 text-center font-semibold text-green-600">
                             ₹{card.total_savings_yearly.toLocaleString()}
                           </td>
-                          <td className="p-4 text-center font-semibold text-foreground">
+                          <td className="p-4 text-center font-semibold text-blue-600">
                             ₹{card.total_extra_benefits.toLocaleString()}
                           </td>
-                          <td className="p-4 text-center font-semibold text-foreground">
+                          <td className="p-4 text-center font-semibold text-red-600">
                             ₹{card.joining_fees.toLocaleString()}
                           </td>
                           <td className="p-4 text-center">
                             <div className="flex items-center justify-center gap-2">
-                              <span className="font-bold text-green-600">
-                                ₹{netSavings.toLocaleString()}
+                              <span className="font-bold text-lg text-green-700">
+                                ₹{card.net_savings.toLocaleString()}
                               </span>
-                              <button
-                                onClick={() => setSelectedCard(card)}
-                                className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
-                              >
-                                <ArrowRight className="w-4 h-4" />
-                              </button>
                             </div>
                           </td>
                         </tr>
