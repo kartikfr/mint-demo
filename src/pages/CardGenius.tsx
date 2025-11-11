@@ -88,6 +88,8 @@ const CardGenius = () => {
   const [results, setResults] = useState<CardResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [expandedCards, setExpandedCards] = useState<number[]>([]);
+  const [activeTab, setActiveTab] = useState<'quick' | 'detailed'>('quick');
+  const [selectedCard, setSelectedCard] = useState<CardResult | null>(null);
 
   const currentQuestion = questions[currentStep];
   const progress = ((currentStep + 1) / questions.length) * 100;
@@ -194,8 +196,6 @@ const CardGenius = () => {
   if (showResults) {
     const totalMonthlySpend = Object.values(responses).reduce((acc, val) => acc + (val || 0), 0);
     const totalAnnualSpend = totalMonthlySpend * 12;
-    const [activeTab, setActiveTab] = useState<'quick' | 'detailed'>('quick');
-    const [selectedCard, setSelectedCard] = useState<CardResult | null>(null);
 
     if (selectedCard) {
       // Detailed card view
