@@ -12,7 +12,9 @@ const CardListing = () => {
   const [filters, setFilters] = useState<any>({
     banks_ids: [],
     annualFees: "",
-    free_cards: ""
+    free_cards: "",
+    credit_score: "",
+    card_networks: []
   });
 
   useEffect(() => {
@@ -25,9 +27,9 @@ const CardListing = () => {
       const response = await cardService.getCardListing({
         slug: "",
         banks_ids: filters.banks_ids,
-        card_networks: [],
+        card_networks: filters.card_networks,
         annualFees: filters.annualFees,
-        credit_score: "",
+        credit_score: filters.credit_score,
         sort_by: "relevance",
         free_cards: filters.free_cards,
         eligiblityPayload: {
@@ -49,8 +51,25 @@ const CardListing = () => {
   };
 
   const handleSearch = () => {
-    // Implement search logic
-    console.log('Search:', searchQuery);
+    fetchCards();
+  };
+
+  const handleFilterChange = (filterType: string, value: string) => {
+    setFilters((prev: any) => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      banks_ids: [],
+      annualFees: "",
+      free_cards: "",
+      credit_score: "",
+      card_networks: []
+    });
+    setSearchQuery("");
   };
 
   return (
@@ -98,10 +117,22 @@ const CardListing = () => {
                   <div>
                     <h3 className="font-semibold mb-3">Annual Fee</h3>
                     <div className="space-y-2">
-                      {['Free Cards', '₹0 - ₹500', '₹500 - ₹2,000', '₹2,000+'].map((fee) => (
-                        <label key={fee} className="flex items-center gap-2 cursor-pointer">
-                          <input type="radio" name="fee" className="accent-primary" />
-                          <span className="text-sm">{fee}</span>
+                      {[
+                        { label: 'All Cards', value: '' },
+                        { label: 'Free Cards', value: 'free' },
+                        { label: '₹0 - ₹500', value: '0-500' },
+                        { label: '₹500 - ₹2,000', value: '500-2000' },
+                        { label: '₹2,000+', value: '2000+' }
+                      ].map((fee) => (
+                        <label key={fee.value} className="flex items-center gap-2 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="fee" 
+                            className="accent-primary"
+                            checked={filters.annualFees === fee.value}
+                            onChange={() => handleFilterChange('annualFees', fee.value)}
+                          />
+                          <span className="text-sm">{fee.label}</span>
                         </label>
                       ))}
                     </div>
@@ -110,16 +141,52 @@ const CardListing = () => {
                   <div>
                     <h3 className="font-semibold mb-3">Credit Score</h3>
                     <div className="space-y-2">
-                      {['Excellent (750+)', 'Good (650-750)', 'Fair (550-650)'].map((score) => (
-                        <label key={score} className="flex items-center gap-2 cursor-pointer">
-                          <input type="radio" name="score" className="accent-primary" />
-                          <span className="text-sm">{score}</span>
+                      {[
+                        { label: 'All Scores', value: '' },
+                        { label: 'Excellent (750+)', value: '750+' },
+                        { label: 'Good (650-750)', value: '650-750' },
+                        { label: 'Fair (550-650)', value: '550-650' }
+                      ].map((score) => (
+                        <label key={score.value} className="flex items-center gap-2 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="score" 
+                            className="accent-primary"
+                            checked={filters.credit_score === score.value}
+                            onChange={() => handleFilterChange('credit_score', score.value)}
+                          />
+                          <span className="text-sm">{score.label}</span>
                         </label>
                       ))}
                     </div>
                   </div>
 
-                  <Button variant="outline" className="w-full">
+                  <div>
+                    <h3 className="font-semibold mb-3">Card Network</h3>
+                    <div className="space-y-2">
+                      {['Visa', 'Mastercard', 'RuPay', 'American Express'].map((network) => (
+                        <label key={network} className="flex items-center gap-2 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="accent-primary"
+                            checked={filters.card_networks.includes(network.toLowerCase())}
+                            onChange={(e) => {
+                              const value = network.toLowerCase();
+                              setFilters((prev: any) => ({
+                                ...prev,
+                                card_networks: e.target.checked
+                                  ? [...prev.card_networks, value]
+                                  : prev.card_networks.filter((n: string) => n !== value)
+                              }));
+                            }}
+                          />
+                          <span className="text-sm">{network}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button variant="outline" className="w-full" onClick={clearFilters}>
                     Clear All
                   </Button>
                 </div>
@@ -140,11 +207,14 @@ const CardListing = () => {
                       key={card.id || index}
                       className="bg-card rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:-translate-y-2"
                     >
-                      <div className="relative h-48">
+                      <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center p-4">
                         <img
-                          src={card.card_bg_image || '/placeholder.svg'}
+                          src={card.card_bg_image}
                           alt={card.name}
-                          className="w-full h-full object-cover"
+                          className="max-h-full max-w-full object-contain"
+                          onError={(e) => {
+                            e.currentTarget.src = '/placeholder.svg';
+                          }}
                         />
                       </div>
 

@@ -230,15 +230,16 @@ const CardGenius = () => {
             
             <div className="grid md:grid-cols-2 gap-6 mb-8">
               {/* Card Image */}
-              {selectedCard.card_bg_image && (
-                <div className="bg-gradient-to-br from-orange-100 to-orange-50 rounded-2xl p-8 flex items-center justify-center">
-                  <img
-                    src={selectedCard.card_bg_image}
-                    alt={selectedCard.card_name}
-                    className="w-full max-w-sm h-64 object-contain"
-                  />
-                </div>
-              )}
+              <div className="bg-gradient-to-br from-orange-100 to-orange-50 rounded-2xl p-8 flex items-center justify-center">
+                <img
+                  src={selectedCard.card_bg_image}
+                  alt={selectedCard.card_name}
+                  className="w-full max-w-sm h-64 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder.svg";
+                  }}
+                />
+              </div>
 
               {/* Savings Summary */}
               <div className="bg-blue-50 rounded-2xl p-6">
@@ -526,13 +527,14 @@ const CardGenius = () => {
                         >
                           <td className="p-4">
                             <div className="flex items-center gap-4">
-                              {card.card_bg_image && (
-                                <img
-                                  src={card.card_bg_image}
-                                  alt={card.card_name}
-                                  className="w-20 h-12 object-contain"
-                                />
-                              )}
+                              <img
+                                src={card.card_bg_image}
+                                alt={card.card_name}
+                                className="w-20 h-12 object-contain"
+                                onError={(e) => {
+                                  e.currentTarget.src = "/placeholder.svg";
+                                }}
+                              />
                               <div>
                                 <p className="font-semibold text-foreground">{card.card_name}</p>
                               </div>
@@ -691,6 +693,18 @@ const CardGenius = () => {
               <ArrowLeft className="mr-2" />
               Previous
             </Button>
+            
+            {currentStep !== questions.length - 1 && (
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={() => setCurrentStep(questions.length - 1)}
+                className="flex-1"
+              >
+                Skip All
+              </Button>
+            )}
+            
             <Button
               size="lg"
               onClick={handleNext}
