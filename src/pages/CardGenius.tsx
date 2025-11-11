@@ -158,7 +158,7 @@ const CardGenius = () => {
               return {
                 card_name: cardDetails.data?.card_name || saving.card_name || saving.card_alias,
                 card_bg_image: cardBgImage,
-                joining_fees: cardDetails.data?.annual_fees || cardDetails.data?.joining_fees || 0,
+                joining_fees: parseInt(saving.joining_fees) || 0,
                 total_savings: saving.total_savings || 0,
                 total_savings_yearly: saving.total_savings_yearly || 0,
                 total_extra_benefits: saving.total_extra_benefits || 0,
@@ -169,7 +169,7 @@ const CardGenius = () => {
               return {
                 card_name: saving.card_name || saving.card_alias,
                 card_bg_image: saving.card_bg_image,
-                joining_fees: 0,
+                joining_fees: parseInt(saving.joining_fees) || 0,
                 total_savings: saving.total_savings || 0,
                 total_savings_yearly: saving.total_savings_yearly || 0,
                 total_extra_benefits: saving.total_extra_benefits || 0,
