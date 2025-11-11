@@ -2,7 +2,6 @@ import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import BankCarousel from "@/components/BankCarousel";
 import PopularCreditCards from "@/components/PopularCreditCards";
-import CuratedCollections from "@/components/CuratedCollections";
 import CategoryCardGenius from "@/components/CategoryCardGenius";
 import MidPageCTA from "@/components/MidPageCTA";
 import FinalCTA from "@/components/FinalCTA";
@@ -14,7 +13,6 @@ const Index = () => {
       <HeroSection />
       <BankCarousel />
       <PopularCreditCards />
-      <CuratedCollections />
       <CategoryCardGenius />
       <MidPageCTA />
       <FinalCTA />

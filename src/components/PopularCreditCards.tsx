@@ -71,9 +71,12 @@ const PopularCreditCards = () => {
     <section className="py-20 bg-muted/30">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Popular Credit Cards
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Cards That Match Your Lifestyle
           </h2>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Handpicked cards tailored to how you spend—because every purchase deserves rewards
+          </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
