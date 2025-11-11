@@ -119,14 +119,14 @@ const HeroSection = () => {
                 className="group"
               >
                 <Sparkles className="mr-2 group-hover:rotate-12 transition-transform" />
-                Find My Perfect Card
+                Find Me The Best Credit Card
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 onClick={() => navigate("/card-genius")}
               >
-                Try Card Genius
+                Try Genius
               </Button>
             </div>
 
