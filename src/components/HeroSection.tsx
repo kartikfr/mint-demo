@@ -13,6 +13,12 @@ const HeroSection = () => {
   const statsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Set initial visibility to ensure elements are visible
+    if (headlineRef.current) headlineRef.current.style.opacity = '1';
+    if (subheadlineRef.current) subheadlineRef.current.style.opacity = '1';
+    if (ctaRef.current) ctaRef.current.style.opacity = '1';
+    if (statsRef.current) statsRef.current.style.opacity = '1';
+
     const timeline = gsap.timeline({ defaults: { ease: "power3.out" } });
 
     timeline
