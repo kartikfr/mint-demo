@@ -280,10 +280,41 @@ const CategoryCardGenius = () => {
 
   const handleViewDetails = async (card: any) => {
     try {
-      // Prefer 'slug', then 'seo_card_alias', then 'card_alias'
-      const alias = card.slug || card.seo_card_alias || card.card_alias;
+      // Map seo_card_alias with the cards listing API to get the correct detail alias, then navigate
+      const params = {
+        slug: "",
+        banks_ids: [],
+        card_networks: [],
+        annualFees: "",
+        credit_score: "",
+        sort_by: "",
+        free_cards: "",
+        eligiblityPayload: {},
+        cardGeniusPayload: []
+      };
+
+      const response = await cardService.getCardListing(params);
+      const list = response?.data?.cards || [];
+
+      const matchingCard = list.find((c: any) =>
+        c.seo_card_alias === card.seo_card_alias ||
+        c.card_alias === card.card_alias ||
+        c.slug === card.slug ||
+        c.name === card.card_name
+      );
+
+      const alias =
+        matchingCard?.seo_card_alias ||
+        matchingCard?.card_alias ||
+        matchingCard?.slug ||
+        card.seo_card_alias ||
+        card.card_alias ||
+        card.slug;
+
       if (alias) {
         navigate(`/cards/${alias}`);
+      } else {
+        console.warn('No alias found to navigate', { card });
       }
     } catch (error) {
       console.error('Error navigating to card details:', error);
