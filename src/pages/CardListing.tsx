@@ -63,8 +63,8 @@ const CardListing = () => {
     try {
       setLoading(true);
       
-      // Build payload matching the exact curl structure
-      const params = {
+      // Build base payload (omit eligiblityPayload unless fully provided)
+      const baseParams: any = {
         slug: "",
         banks_ids: [],
         card_networks: [],
@@ -72,17 +72,39 @@ const CardListing = () => {
         credit_score: "",
         sort_by: filters.sort_by || "",
         free_cards: "",
-        eligiblityPayload: {
-          pincode: eligibilitySubmitted && eligibility.pincode ? eligibility.pincode : "",
-          inhandIncome: eligibilitySubmitted && eligibility.inhandIncome ? eligibility.inhandIncome : "",
-          empStatus: eligibilitySubmitted && eligibility.empStatus ? eligibility.empStatus : ""
-        },
         cardGeniusPayload: []
       };
 
-      console.log('Fetching cards with params:', params);
-      const response = await cardService.getCardListing(params);
+      // Only include eligibility if user submitted and all fields are present
+      if (
+        eligibilitySubmitted &&
+        eligibility.pincode &&
+        eligibility.inhandIncome &&
+        eligibility.empStatus
+      ) {
+        baseParams.eligiblityPayload = {
+          pincode: eligibility.pincode,
+          inhandIncome: eligibility.inhandIncome,
+          empStatus: eligibility.empStatus
+        };
+      }
+
+      console.log('Fetching cards with params:', baseParams);
+      let response = await cardService.getCardListing(baseParams);
       console.log('API Response:', response);
+
+      // If backend complains about incomplete eligibility, retry without it
+      if (
+        response?.status === 'error' &&
+        typeof response?.error?.message === 'string' &&
+        response.error.message.toLowerCase().includes('incomplete eligiblity')
+      ) {
+        const retryParams = { ...baseParams } as any;
+        delete retryParams.eligiblityPayload;
+        console.warn('Retrying without eligiblityPayload due to incomplete data error');
+        response = await cardService.getCardListing(retryParams);
+        console.log('Retry API Response:', response);
+      }
 
       if (response.status === 'success' && response.data && Array.isArray(response.data.cards)) {
         setCards(response.data.cards);
