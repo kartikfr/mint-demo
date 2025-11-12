@@ -90,7 +90,7 @@ const HeroSection = () => {
             <div className="flex flex-wrap justify-center lg:justify-start gap-6 text-sm text-charcoal-600">
               <div className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-primary" />
-                <span className="font-medium">Trusted by 2M+ Indians</span>
+                <span className="font-medium">Trusted by Smart Savers</span>
               </div>
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-primary" />
@@ -98,7 +98,7 @@ const HeroSection = () => {
               </div>
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-primary" />
-                <span className="font-medium">Unbiased Advice</span>
+                <span className="font-medium">Unbiased Recommendations</span>
               </div>
             </div>
 
@@ -106,7 +106,10 @@ const HeroSection = () => {
             <div ref={ctaRef} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start opacity-100">
               <Button
                 size="lg"
-                onClick={() => navigate("/cards")}
+                onClick={() => {
+                  navigate("/cards");
+                  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+                }}
                 className="group shadow-xl"
               >
                 <Sparkles className="mr-2 group-hover:rotate-12 transition-transform" />
@@ -115,26 +118,29 @@ const HeroSection = () => {
               <Button
                 size="lg"
                 variant="outline"
-                onClick={() => navigate("/card-genius")}
+                onClick={() => {
+                  navigate("/card-genius");
+                  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+                }}
                 className="shadow-lg"
               >
-                Try Genius
+                Try Card Genius
               </Button>
             </div>
 
             {/* Stats */}
             <div ref={statsRef} className="grid grid-cols-3 gap-6 pt-8 border-t border-charcoal-200">
               <div className="text-center lg:text-left">
-                <div className="text-3xl md:text-4xl font-mono font-bold text-primary">200+</div>
+                <div className="text-3xl md:text-4xl font-mono font-bold text-primary">100+</div>
                 <div className="text-sm text-charcoal-600 mt-1">Credit Cards</div>
               </div>
               <div className="text-center lg:text-left">
-                <div className="text-3xl md:text-4xl font-mono font-bold text-primary">₹45K</div>
-                <div className="text-sm text-charcoal-600 mt-1">Avg. Savings</div>
+                <div className="text-3xl md:text-4xl font-mono font-bold text-primary">₹5K</div>
+                <div className="text-sm text-charcoal-600 mt-1">Avg. Monthly Savings</div>
               </div>
               <div className="text-center lg:text-left">
-                <div className="text-3xl md:text-4xl font-mono font-bold text-primary">2M+</div>
-                <div className="text-sm text-charcoal-600 mt-1">Happy Users</div>
+                <div className="text-3xl md:text-4xl font-mono font-bold text-primary">100K+</div>
+                <div className="text-sm text-charcoal-600 mt-1">Cards Compared</div>
               </div>
             </div>
           </div>

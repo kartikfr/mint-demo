@@ -28,16 +28,16 @@ const FinalCTA = () => {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto mb-12">
             <div className="p-6 rounded-xl bg-card shadow-md">
-              <div className="text-3xl font-bold text-primary mb-2">200+</div>
+              <div className="text-3xl font-bold text-primary mb-2">100+</div>
               <div className="text-sm text-muted-foreground">Credit Cards</div>
             </div>
             <div className="p-6 rounded-xl bg-card shadow-md">
-              <div className="text-3xl font-bold text-primary mb-2">₹45K</div>
-              <div className="text-sm text-muted-foreground">Avg. Savings/Year</div>
+              <div className="text-3xl font-bold text-primary mb-2">₹5K</div>
+              <div className="text-sm text-muted-foreground">Avg. Monthly Savings</div>
             </div>
             <div className="p-6 rounded-xl bg-card shadow-md">
-              <div className="text-3xl font-bold text-primary mb-2">2M+</div>
-              <div className="text-sm text-muted-foreground">Happy Users</div>
+              <div className="text-3xl font-bold text-primary mb-2">100K+</div>
+              <div className="text-sm text-muted-foreground">Cards Compared</div>
             </div>
           </div>
 
@@ -46,7 +46,10 @@ const FinalCTA = () => {
             <Button 
               size="lg" 
               className="group shadow-xl min-w-[250px]"
-              onClick={() => navigate("/cards")}
+              onClick={() => {
+                navigate("/cards");
+                setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+              }}
             >
               <Sparkles className="mr-2 group-hover:rotate-12 transition-transform" />
               Explore All Cards
@@ -57,7 +60,10 @@ const FinalCTA = () => {
               size="lg" 
               variant="outline"
               className="shadow-lg min-w-[250px]"
-              onClick={() => navigate("/card-genius")}
+              onClick={() => {
+                navigate("/card-genius");
+                setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+              }}
             >
               Try Card Genius
             </Button>
