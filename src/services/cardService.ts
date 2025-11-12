@@ -81,5 +81,39 @@ export const cardService = {
       `${BASE_URL}/cardgenius/cards/${alias}`
     );
     return response.json();
+  },
+
+  async checkEligibility(params: {
+    cardAlias: string;
+    pincode: string;
+    inhandIncome: string;
+    empStatus: 'salaried' | 'self-employed';
+  }) {
+    const response = await authManager.makeAuthenticatedRequest(
+      `${BASE_URL}/cardgenius/cards`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          slug: '',
+          banks_ids: [],
+          card_networks: [],
+          annualFees: '',
+          credit_score: '',
+          sort_by: '',
+          free_cards: '',
+          eligiblityPayload: {
+            pincode: params.pincode,
+            inhandIncome: params.inhandIncome,
+            empStatus: params.empStatus
+          },
+          cardGeniusPayload: {
+            tag_id: '1',
+            fuel: '100',
+            seo_card_alias: params.cardAlias
+          }
+        })
+      }
+    );
+    return response.json();
   }
 };

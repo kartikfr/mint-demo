@@ -2,11 +2,12 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { cardService } from '@/services/cardService';
 import Navigation from '@/components/Navigation';
-import { Star, ChevronDown, ChevronUp, Share2, ExternalLink, Gift, Award, Sparkles, ArrowLeft } from 'lucide-react';
+import { Star, ChevronDown, ChevronUp, Share2, ExternalLink, Gift, Award, Sparkles, ArrowLeft, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { toast } from 'sonner';
+import EligibilityDialog from '@/components/EligibilityDialog';
 
 interface CardData {
   id: number;
@@ -76,6 +77,7 @@ export default function CardDetails() {
   const [loading, setLoading] = useState(true);
   const [showFixedCTA, setShowFixedCTA] = useState(false);
   const [selectedBenefitCategory, setSelectedBenefitCategory] = useState<string>('All');
+  const [showEligibilityDialog, setShowEligibilityDialog] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -306,6 +308,24 @@ export default function CardDetails() {
                 <Button 
                   size="lg" 
                   variant="outline"
+                  onClick={() => {
+                    setShowEligibilityDialog(true);
+                    // Track analytics
+                    if (typeof window !== 'undefined' && (window as any).gtag) {
+                      (window as any).gtag('event', 'eligibility_modal_open', {
+                        card_alias: alias,
+                        card_name: card.name
+                      });
+                    }
+                  }}
+                  className="border-white text-white hover:bg-white/10 hidden md:flex"
+                >
+                  <Shield className="mr-2 w-4 h-4" />
+                  Check Eligibility
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline"
                   onClick={handleShare}
                   className="border-white text-white hover:bg-white/10"
                 >
@@ -313,6 +333,25 @@ export default function CardDetails() {
                   Share
                 </Button>
               </div>
+
+              {/* Mobile Check Eligibility - Full Width Below CTAs */}
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => {
+                  setShowEligibilityDialog(true);
+                  if (typeof window !== 'undefined' && (window as any).gtag) {
+                    (window as any).gtag('event', 'eligibility_modal_open', {
+                      card_alias: alias,
+                      card_name: card.name
+                    });
+                  }
+                }}
+                className="border-white text-white hover:bg-white/10 w-full md:hidden"
+              >
+                <Shield className="mr-2 w-4 h-4" />
+                Check Eligibility
+              </Button>
             </div>
           </div>
         </div>
@@ -715,6 +754,15 @@ export default function CardDetails() {
           </div>
         </div>
       </div>
+
+      {/* Eligibility Dialog */}
+      <EligibilityDialog
+        open={showEligibilityDialog}
+        onOpenChange={setShowEligibilityDialog}
+        cardAlias={alias || ''}
+        cardName={card.name}
+        networkUrl={card.network_url}
+      />
     </div>
   );
 }
