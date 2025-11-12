@@ -627,7 +627,7 @@ const CardGenius = () => {
                       {/* Detailed Breakdown Tab - Show category columns + summary */}
                       {activeTab === 'detailed' && (
                         <>
-                          {spendingCategories.map(category => {
+                          {spendingCategories.map((category, idx) => {
                             const displayName = questions.find(q => q.field === category)?.question
                               .replace('How much do you spend on ', '')
                               .replace('How much do you spend at ', '')
@@ -646,11 +646,21 @@ const CardGenius = () => {
                               || category.replace(/_/g, ' ');
                             
                             return (
-                              <th key={category} className="text-center p-4 font-semibold text-sm text-foreground whitespace-nowrap">
-                                {displayName}
-                              </th>
+                              <>
+                                <th key={category} className="text-center p-4 font-semibold text-sm text-foreground whitespace-nowrap">
+                                  {displayName}
+                                </th>
+                                {idx < spendingCategories.length - 1 && (
+                                  <th key={`${category}-plus`} className="text-center p-4 font-semibold text-sm text-muted-foreground whitespace-nowrap w-12">
+                                    <span className="text-2xl">+</span>
+                                  </th>
+                                )}
+                              </>
                             );
                           })}
+                          <th className="text-center p-4 font-semibold text-sm text-muted-foreground whitespace-nowrap w-12">
+                            <span className="text-2xl">=</span>
+                          </th>
                           <th className="text-center p-4 font-semibold text-sm text-foreground whitespace-nowrap">
                             Total Savings
                           </th>
@@ -758,15 +768,21 @@ const CardGenius = () => {
                           {/* Detailed Breakdown Tab - Show category data + summary */}
                           {activeTab === 'detailed' && (
                             <>
-                              {spendingCategories.map(category => {
+                              {spendingCategories.map((category, idx) => {
                                 const breakdown = card.spending_breakdown[category];
                                 const yearlySavings = breakdown?.savings ? breakdown.savings * 12 : 0;
                                 return (
-                                  <td key={category} className="p-4 text-center font-semibold text-green-600 whitespace-nowrap">
-                                    ₹{yearlySavings.toLocaleString()}
-                                  </td>
+                                  <>
+                                    <td key={category} className="p-4 text-center font-semibold text-green-600 whitespace-nowrap">
+                                      ₹{yearlySavings.toLocaleString()}
+                                    </td>
+                                    {idx < spendingCategories.length - 1 && (
+                                      <td key={`${category}-plus`} className="p-4"></td>
+                                    )}
+                                  </>
                                 );
                               })}
+                              <td className="p-4"></td>
                               <td className="p-4 text-center font-semibold text-green-600 whitespace-nowrap">
                                 ₹{card.total_savings_yearly.toLocaleString()}
                               </td>
