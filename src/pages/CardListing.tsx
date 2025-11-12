@@ -713,10 +713,10 @@ const CardListing = () => {
                           
                           <h3 className="text-xl font-bold mb-3 line-clamp-2">{card.name}</h3>
                           
-                          {cardSavings[card.id] && (
+                          {cardSavings[card.id] && filters.category !== 'all' && (
                             <div className="mb-3 flex items-center gap-1 bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-2 rounded-lg text-sm font-semibold">
                               <Sparkles className="w-4 h-4" />
-                              Total Yearly Savings: ₹{cardSavings[card.id].toLocaleString()}
+                              Total Savings: ₹{cardSavings[card.id].toLocaleString()}/year
                             </div>
                           )}
                           
