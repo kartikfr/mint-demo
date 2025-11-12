@@ -106,11 +106,7 @@ export const cardService = {
             inhandIncome: params.inhandIncome,
             empStatus: params.empStatus
           },
-          cardGeniusPayload: {
-            tag_id: '1',
-            fuel: '100',
-            seo_card_alias: params.cardAlias
-          }
+          cardGeniusPayload: {}
         })
       }
     );
