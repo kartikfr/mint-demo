@@ -79,9 +79,20 @@ const CardListing = () => {
 
       if (response.data && response.data.cards) {
         setCards(response.data.cards);
+      } else {
+        console.error('Invalid response:', response);
+        toast.error('Failed to load cards. Please try again.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch cards:', error);
+      
+      if (error.message?.includes('API key')) {
+        toast.error('API key expired. Please contact support.', {
+          description: 'The authentication key needs to be renewed.'
+        });
+      } else {
+        toast.error('Unable to load cards. Please try again later.');
+      }
     } finally {
       setLoading(false);
     }
