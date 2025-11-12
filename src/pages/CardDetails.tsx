@@ -257,7 +257,7 @@ export default function CardDetails() {
                 <Button 
                   size="lg" 
                   onClick={handleApply}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold animate-pulse"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
                 >
                   Apply Now
                   <ExternalLink className="ml-2 w-4 h-4" />
@@ -291,19 +291,80 @@ export default function CardDetails() {
       )}
 
       <div className="container mx-auto px-4 py-12 space-y-12">
-        {/* USPs Grid - Show remaining USPs not displayed in hero */}
+        {/* Fees & Eligibility - Moved to top as users want to see this first */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Fees */}
+          <section className="bg-card border border-border rounded-xl p-6">
+            <h2 className="text-2xl font-bold text-foreground mb-6">Fees</h2>
+            <div className="space-y-4">
+              <div className="flex justify-between items-start pb-4 border-b border-border">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Joining Fee</p>
+                  <p className="text-2xl font-bold text-foreground">₹{card.joining_fee_text}</p>
+                </div>
+                {card.joining_fee_offset && (
+                  <Badge variant="secondary" className="text-xs max-w-[200px]">
+                    {card.joining_fee_offset}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Annual Fee</p>
+                  <p className="text-2xl font-bold text-foreground">₹{card.annual_fee_text}</p>
+                </div>
+                {card.annual_fee_waiver && (
+                  <Badge variant="secondary" className="text-xs max-w-[200px]">
+                    Waiver: {card.annual_fee_waiver}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Eligibility */}
+          <section className="bg-card border border-border rounded-xl p-6">
+            <h2 className="text-2xl font-bold text-foreground mb-6">Eligibility</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Age</p>
+                <p className="text-lg font-semibold text-foreground">{card.min_age}-{card.max_age} years</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Credit Score</p>
+                <p className="text-lg font-semibold text-foreground">{card.crif}+</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Min Income</p>
+                <p className="text-lg font-semibold text-foreground">₹{card.income_salaried} LPA</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Employment</p>
+                <p className="text-lg font-semibold text-foreground capitalize">{card.employment_type}</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* All Benefits - Improved layout */}
         {sortedUSPs.length > 2 && (
           <section className="animate-fade-in">
-            <h2 className="text-2xl font-bold text-foreground mb-6">All Benefits</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <h2 className="text-2xl font-bold text-foreground mb-6">Key Benefits</h2>
+            <div className="grid md:grid-cols-2 gap-4">
               {sortedUSPs.slice(2).map((usp, index) => (
                 <div 
                   key={index}
-                  className="bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow"
-                  style={{ animationDelay: `${index * 80}ms` }}
+                  className="bg-card border border-border rounded-lg p-5 hover:border-primary/50 transition-all duration-200"
                 >
-                  <h3 className="font-semibold text-foreground mb-2">{usp.header}</h3>
-                  <p className="text-sm text-muted-foreground">{usp.description}</p>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-primary text-lg">✓</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1.5">{usp.header}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{usp.description}</p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -324,53 +385,6 @@ export default function CardDetails() {
           </section>
         )}
 
-        {/* Fees & Savings */}
-        <section className="bg-card border border-border rounded-xl p-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Fees & Savings</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Joining Fee</p>
-              <p className="text-2xl font-bold text-foreground">₹{card.joining_fee_text}</p>
-              {card.joining_fee_offset && (
-                <p className="text-xs text-muted-foreground mt-1">{card.joining_fee_offset}</p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Annual Fee</p>
-              <p className="text-2xl font-bold text-foreground">₹{card.annual_fee_text}</p>
-              {card.annual_fee_waiver && (
-                <p className="text-xs text-muted-foreground mt-1">Waiver: {card.annual_fee_waiver}</p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Estimated Annual Savings</p>
-              <p className="text-2xl font-bold text-primary">₹{card.annual_saving}</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Eligibility */}
-        <section className="bg-card border border-border rounded-xl p-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Eligibility</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Age</p>
-              <p className="text-lg font-semibold text-foreground">{card.min_age}-{card.max_age} years</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Credit Score</p>
-              <p className="text-lg font-semibold text-foreground">{card.crif}+</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Min Income (Salaried)</p>
-              <p className="text-lg font-semibold text-foreground">₹{card.income_salaried} LPA</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">Employment</p>
-              <p className="text-lg font-semibold text-foreground capitalize">{card.employment_type}</p>
-            </div>
-          </div>
-        </section>
 
         {/* Rewards & Redemption */}
         <section className="bg-card border border-border rounded-xl p-8">
@@ -474,24 +488,29 @@ export default function CardDetails() {
           </div>
         </section>
 
-        {/* All Benefits */}
+        {/* All Card Benefits - Improved */}
         {card.product_benefits && card.product_benefits.length > 0 && (
           <section>
-            <h2 className="text-2xl font-bold text-foreground mb-6">All Card Benefits</h2>
-            <Accordion type="single" collapsible className="space-y-4">
+            <h2 className="text-2xl font-bold text-foreground mb-6">Detailed Benefits</h2>
+            <Accordion type="single" collapsible className="space-y-3">
               {card.product_benefits.map((benefit, index) => (
                 <AccordionItem 
                   key={index} 
                   value={`benefit-${index}`}
-                  className="bg-card border border-border rounded-xl overflow-hidden"
+                  className="bg-card border border-border rounded-lg overflow-hidden hover:border-primary/50 transition-colors"
                 >
-                  <AccordionTrigger className="px-6 hover:no-underline">
-                    <span className="font-semibold">{benefit.sub_type}</span>
+                  <AccordionTrigger className="px-6 py-4 hover:no-underline group">
+                    <div className="flex items-center gap-3 text-left">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                        <span className="text-primary text-sm font-bold">{index + 1}</span>
+                      </div>
+                      <span className="font-semibold text-foreground">{benefit.sub_type}</span>
+                    </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-6">
+                  <AccordionContent className="px-6 pb-5">
                     <div 
                       dangerouslySetInnerHTML={{ __html: benefit.html_text }} 
-                      className="prose prose-sm max-w-none text-muted-foreground"
+                      className="prose prose-sm max-w-none text-muted-foreground ml-11"
                     />
                   </AccordionContent>
                 </AccordionItem>
