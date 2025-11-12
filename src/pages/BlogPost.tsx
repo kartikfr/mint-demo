@@ -1,13 +1,19 @@
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, Clock, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { blogs } from "@/components/BlogSection";
+import { toast } from "sonner";
 
 const BlogPost = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   
   const blog = blogs.find(b => b.slug === slug);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [slug]);
 
   if (!blog) {
     return (
@@ -71,13 +77,28 @@ const BlogPost = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
+            onClick={async () => {
+              const shareUrl = window.location.href;
+              
               if (navigator.share) {
-                navigator.share({
-                  title: blog.title,
-                  text: blog.excerpt,
-                  url: window.location.href,
-                });
+                try {
+                  await navigator.share({
+                    title: blog.title,
+                    text: blog.excerpt,
+                    url: shareUrl,
+                  });
+                } catch (err) {
+                  // User cancelled or error occurred
+                  if ((err as Error).name !== 'AbortError') {
+                    // Fallback to clipboard
+                    navigator.clipboard.writeText(shareUrl);
+                    toast.success("Link copied to clipboard!");
+                  }
+                }
+              } else {
+                // Fallback for browsers without Web Share API
+                navigator.clipboard.writeText(shareUrl);
+                toast.success("Link copied to clipboard!");
               }
             }}
           >

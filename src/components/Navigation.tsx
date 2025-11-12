@@ -8,7 +8,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <Sparkles className="w-8 h-8 text-primary" />
-            <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <span className="text-2xl font-bold text-foreground">
               MoneyControl Cards
             </span>
           </Link>

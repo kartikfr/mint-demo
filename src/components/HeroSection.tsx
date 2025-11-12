@@ -83,7 +83,7 @@ const HeroSection = () => {
               ref={subheadlineRef}
               className="text-xl md:text-2xl text-charcoal-700 max-w-2xl mx-auto lg:mx-0"
             >
-              Find the credit card that pays you back for living your life. AI-powered recommendations in 60 seconds.
+              Find the credit card that pays you back for living your life. Get personalized recommendations in 60 seconds.
             </p>
 
             {/* Trust Indicators */}
