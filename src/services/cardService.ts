@@ -58,7 +58,7 @@ export const cardService = {
     annualFees?: string;
     credit_score?: string;
     sort_by?: string;
-    free_cards?: string;
+    free_cards?: boolean;
     eligiblityPayload?: {
       pincode?: string;
       inhandIncome?: string;

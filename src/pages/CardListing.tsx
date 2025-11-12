@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, ArrowUpDown } from "lucide-react";
 import { cardService } from "@/services/cardService";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,6 +13,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const CardListing = () => {
   const [cards, setCards] = useState<any[]>([]);
@@ -20,37 +27,40 @@ const CardListing = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [displayCount, setDisplayCount] = useState(12);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [filters, setFilters] = useState<any>({
-    banks_ids: [],
+  
+  // API-compliant filters
+  const [filters, setFilters] = useState({
+    banks_ids: [] as number[],
+    card_networks: [] as string[],
     annualFees: "",
-    free_cards: "",
     credit_score: "",
-    card_networks: [],
-    age: "",
-    spending_category: "",
-    ltf: false
+    sort_by: "recommended",
+    free_cards: false
+  });
+
+  // Eligibility payload
+  const [eligibility, setEligibility] = useState({
+    pincode: "110001",
+    inhandIncome: "50000",
+    empStatus: "salaried"
   });
 
   useEffect(() => {
     fetchCards();
-  }, [filters]);
+  }, [filters, eligibility]);
 
   const fetchCards = async () => {
     try {
       setLoading(true);
       const response = await cardService.getCardListing({
-        slug: "",
+        slug: searchQuery || "",
         banks_ids: filters.banks_ids,
         card_networks: filters.card_networks,
         annualFees: filters.annualFees,
         credit_score: filters.credit_score,
-        sort_by: "relevance",
+        sort_by: filters.sort_by,
         free_cards: filters.free_cards,
-        eligiblityPayload: {
-          pincode: "110001",
-          inhandIncome: "50000",
-          empStatus: "salaried"
-        },
+        eligiblityPayload: eligibility,
         cardGeniusPayload: {}
       });
 
@@ -87,133 +97,53 @@ const CardListing = () => {
   const clearFilters = () => {
     setFilters({
       banks_ids: [],
-      annualFees: "",
-      free_cards: "",
-      credit_score: "",
       card_networks: [],
-      age: "",
-      spending_category: "",
-      ltf: false
+      annualFees: "",
+      credit_score: "",
+      sort_by: "recommended",
+      free_cards: false
+    });
+    setEligibility({
+      pincode: "110001",
+      inhandIncome: "50000",
+      empStatus: "salaried"
     });
     setSearchQuery("");
     setDisplayCount(12);
   };
 
-  // Filter cards based on search and filters
-  const getFilteredCards = () => {
-    let filtered = [...cards];
-
-    // Search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(card => 
-        card.name?.toLowerCase().includes(query) ||
-        card.banks?.name?.toLowerCase().includes(query) ||
-        card.card_type?.toLowerCase().includes(query)
-      );
-    }
-
-    // LTF filter (Lifetime Free - 0 joining fee)
-    if (filters.ltf) {
-      filtered = filtered.filter(card => 
-        card.joining_fee_text === "0" || 
-        card.joining_fee_text === "Free" ||
-        card.joining_fee_text?.toLowerCase() === "nil"
-      );
-    }
-
-    // Age filter
-    if (filters.age) {
-      const age = parseInt(filters.age);
-      filtered = filtered.filter(card => 
-        card.min_age <= age && card.max_age >= age
-      );
-    }
-
-    // Spending category filter
-    if (filters.spending_category) {
-      filtered = filtered.filter(card => 
-        card.tags?.some((tag: any) => 
-          tag.name?.toLowerCase() === filters.spending_category.toLowerCase()
-        )
-      );
-    }
-
-    return filtered;
-  };
-
-  const filteredCards = getFilteredCards();
-
   // Filter sidebar component
   const FilterSidebar = () => (
     <div className="space-y-6">
+      {/* Lifetime Free (LTF) */}
       <div>
         <h3 className="font-semibold mb-3">Lifetime Free (LTF)</h3>
         <label className="flex items-center gap-2 cursor-pointer">
           <input 
             type="checkbox" 
             className="accent-primary w-4 h-4"
-            checked={filters.ltf}
-            onChange={(e) => handleFilterChange('ltf', e.target.checked)}
+            checked={filters.free_cards}
+            onChange={(e) => handleFilterChange('free_cards', e.target.checked)}
           />
-          <span className="text-sm">Show only Lifetime Free cards (₹0 joining fee)</span>
+          <span className="text-sm">Show only Lifetime Free cards</span>
         </label>
       </div>
 
+      {/* Annual Fee Range */}
       <div>
-        <h3 className="font-semibold mb-3">Age</h3>
-        <Input
-          type="number"
-          placeholder="Enter your age"
-          value={filters.age}
-          onChange={(e) => handleFilterChange('age', e.target.value)}
-          className="w-full"
-          min="18"
-          max="100"
-        />
-        <p className="text-xs text-muted-foreground mt-1">Cards matching your age range</p>
-      </div>
-
-      <div>
-        <h3 className="font-semibold mb-3">Spending Category</h3>
+        <h3 className="font-semibold mb-3">Annual Fee Range</h3>
         <div className="space-y-2">
           {[
-            { label: 'All Categories', value: '' },
-            { label: 'Fuel', value: 'Fuel' },
-            { label: 'Shopping', value: 'Shopping' },
-            { label: 'Travel', value: 'Travel' },
-            { label: 'Dining', value: 'Dining' },
-            { label: 'Airport Lounge', value: 'Airport Lounge' },
-            { label: 'Entertainment', value: 'Entertainment' }
-          ].map((cat) => (
-            <label key={cat.value} className="flex items-center gap-2 cursor-pointer">
-              <input 
-                type="radio" 
-                name="category" 
-                className="accent-primary"
-                checked={filters.spending_category === cat.value}
-                onChange={() => handleFilterChange('spending_category', cat.value)}
-              />
-              <span className="text-sm">{cat.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="font-semibold mb-3">Annual Fee</h3>
-        <div className="space-y-2">
-          {[
-            { label: 'All Cards', value: '' },
-            { label: 'Free Cards', value: 'free' },
+            { label: 'All Fees', value: '' },
             { label: '₹0 - ₹500', value: '0-500' },
-            { label: '₹500 - ₹2,000', value: '500-2000' },
-            { label: '₹2,000+', value: '2000+' }
+            { label: '₹500 - ₹1,000', value: '500-1000' },
+            { label: '₹1,000 - ₹5,000', value: '1000-5000' },
+            { label: '₹5,000+', value: '5000-100000' }
           ].map((fee) => (
             <label key={fee.value} className="flex items-center gap-2 cursor-pointer">
               <input 
                 type="radio" 
-                name="fee" 
+                name="annualFee" 
                 className="accent-primary"
                 checked={filters.annualFees === fee.value}
                 onChange={() => handleFilterChange('annualFees', fee.value)}
@@ -224,19 +154,21 @@ const CardListing = () => {
         </div>
       </div>
 
+      {/* Credit Score */}
       <div>
-        <h3 className="font-semibold mb-3">Credit Score</h3>
+        <h3 className="font-semibold mb-3">Minimum Credit Score</h3>
         <div className="space-y-2">
           {[
             { label: 'All Scores', value: '' },
-            { label: 'Excellent (750+)', value: '750+' },
-            { label: 'Good (650-750)', value: '650-750' },
-            { label: 'Fair (550-650)', value: '550-650' }
+            { label: '600+', value: '600' },
+            { label: '650+', value: '650' },
+            { label: '750+ (Excellent)', value: '750' },
+            { label: '800+ (Premium)', value: '800' }
           ].map((score) => (
             <label key={score.value} className="flex items-center gap-2 cursor-pointer">
               <input 
                 type="radio" 
-                name="score" 
+                name="creditScore" 
                 className="accent-primary"
                 checked={filters.credit_score === score.value}
                 onChange={() => handleFilterChange('credit_score', score.value)}
@@ -247,28 +179,72 @@ const CardListing = () => {
         </div>
       </div>
 
+      {/* Card Network */}
       <div>
         <h3 className="font-semibold mb-3">Card Network</h3>
         <div className="space-y-2">
-          {['Visa', 'Mastercard', 'RuPay', 'American Express'].map((network) => (
+          {['VISA', 'Mastercard', 'RuPay', 'AmericanExpress'].map((network) => (
             <label key={network} className="flex items-center gap-2 cursor-pointer">
               <input 
                 type="checkbox" 
                 className="accent-primary"
-                checked={filters.card_networks.includes(network.toLowerCase())}
+                checked={filters.card_networks.includes(network)}
                 onChange={(e) => {
-                  const value = network.toLowerCase();
                   setFilters((prev: any) => ({
                     ...prev,
                     card_networks: e.target.checked
-                      ? [...prev.card_networks, value]
-                      : prev.card_networks.filter((n: string) => n !== value)
+                      ? [...prev.card_networks, network]
+                      : prev.card_networks.filter((n: string) => n !== network)
                   }));
                 }}
               />
-              <span className="text-sm">{network}</span>
+              <span className="text-sm">{network === 'AmericanExpress' ? 'American Express' : network}</span>
             </label>
           ))}
+        </div>
+      </div>
+
+      {/* Eligibility Criteria */}
+      <div className="pt-4 border-t border-border">
+        <h3 className="font-semibold mb-3">Eligibility Criteria</h3>
+        
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm text-muted-foreground mb-1 block">Pincode</label>
+            <Input
+              type="text"
+              placeholder="Enter pincode"
+              value={eligibility.pincode}
+              onChange={(e) => setEligibility(prev => ({ ...prev, pincode: e.target.value }))}
+              maxLength={6}
+            />
+          </div>
+          
+          <div>
+            <label className="text-sm text-muted-foreground mb-1 block">Monthly Income (₹)</label>
+            <Input
+              type="text"
+              placeholder="Enter income"
+              value={eligibility.inhandIncome}
+              onChange={(e) => setEligibility(prev => ({ ...prev, inhandIncome: e.target.value }))}
+            />
+          </div>
+          
+          <div>
+            <label className="text-sm text-muted-foreground mb-1 block">Employment Status</label>
+            <Select
+              value={eligibility.empStatus}
+              onValueChange={(value) => setEligibility(prev => ({ ...prev, empStatus: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="salaried">Salaried</SelectItem>
+                <SelectItem value="self-employed">Self-Employed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -289,7 +265,7 @@ const CardListing = () => {
             Explore 200+ Credit Cards
           </h1>
           
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto space-y-4">
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
@@ -317,6 +293,25 @@ const CardListing = () => {
                 Search
               </Button>
             </div>
+            
+            {/* Sort By */}
+            <div className="flex items-center gap-2 justify-center">
+              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Sort by:</span>
+              <Select
+                value={filters.sort_by}
+                onValueChange={(value) => handleFilterChange('sort_by', value)}
+              >
+                <SelectTrigger className="w-48 bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recommended">Recommended</SelectItem>
+                  <SelectItem value="annual_savings">Annual Savings</SelectItem>
+                  <SelectItem value="annual_fees">Annual Fees</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </section>
@@ -338,7 +333,7 @@ const CardListing = () => {
               {/* Mobile Filter Button */}
               <div className="lg:hidden mb-4 flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Showing {Math.min(displayCount, filteredCards.length)} of {filteredCards.length} cards
+                  Showing {Math.min(displayCount, cards.length)} of {cards.length} cards
                 </p>
                 <Sheet>
                   <SheetTrigger asChild>
@@ -359,7 +354,7 @@ const CardListing = () => {
               </div>
 
               {/* Active Filters */}
-              {(filters.ltf || filters.age || filters.spending_category || searchQuery) && (
+              {(filters.free_cards || filters.annualFees || filters.credit_score || searchQuery) && (
                 <div className="mb-4 flex flex-wrap gap-2">
                   {searchQuery && (
                     <Badge variant="secondary" className="gap-2">
@@ -373,30 +368,30 @@ const CardListing = () => {
                       />
                     </Badge>
                   )}
-                  {filters.ltf && (
+                  {filters.free_cards && (
                     <Badge variant="secondary" className="gap-2">
                       Lifetime Free
                       <X 
                         className="w-3 h-3 cursor-pointer" 
-                        onClick={() => handleFilterChange('ltf', false)}
+                        onClick={() => handleFilterChange('free_cards', false)}
                       />
                     </Badge>
                   )}
-                  {filters.age && (
+                  {filters.annualFees && (
                     <Badge variant="secondary" className="gap-2">
-                      Age: {filters.age}
+                      Fee: ₹{filters.annualFees}
                       <X 
                         className="w-3 h-3 cursor-pointer" 
-                        onClick={() => handleFilterChange('age', '')}
+                        onClick={() => handleFilterChange('annualFees', '')}
                       />
                     </Badge>
                   )}
-                  {filters.spending_category && (
+                  {filters.credit_score && (
                     <Badge variant="secondary" className="gap-2">
-                      {filters.spending_category}
+                      Credit Score: {filters.credit_score}+
                       <X 
                         className="w-3 h-3 cursor-pointer" 
-                        onClick={() => handleFilterChange('spending_category', '')}
+                        onClick={() => handleFilterChange('credit_score', '')}
                       />
                     </Badge>
                   )}
@@ -408,7 +403,7 @@ const CardListing = () => {
                   <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                   <p className="mt-4 text-muted-foreground">Loading cards...</p>
                 </div>
-              ) : filteredCards.length === 0 ? (
+              ) : cards.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-xl text-muted-foreground">No cards found matching your criteria</p>
                   <Button variant="outline" className="mt-4" onClick={clearFilters}>
@@ -418,7 +413,7 @@ const CardListing = () => {
               ) : (
                 <>
                   <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {filteredCards.slice(0, displayCount).map((card, index) => (
+                    {cards.slice(0, displayCount).map((card, index) => (
                       <div
                         key={card.id || index}
                         className="bg-card rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:-translate-y-2"
@@ -489,7 +484,7 @@ const CardListing = () => {
                   </div>
                   
                   {/* Load More Button */}
-                  {displayCount < filteredCards.length && (
+                  {displayCount < cards.length && (
                     <div className="text-center mt-8">
                       <Button 
                         size="lg" 
@@ -503,7 +498,7 @@ const CardListing = () => {
                             Loading...
                           </>
                         ) : (
-                          `Load More Cards (${filteredCards.length - displayCount} remaining)`
+                          `Load More Cards (${cards.length - displayCount} remaining)`
                         )}
                       </Button>
                     </div>
