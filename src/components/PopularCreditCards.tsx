@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 const categories = {
   shopping: {
     title: "Online Shopping",
-    aliases: ['axis-flipkart-credit-card', 'sbi-cashback-credit-card', 'hdfc-swiggy-credit-card']
+    aliases: ['idfc-power-plus-credit-card', 'sbi-cashback-credit-card', 'hdfc-swiggy-credit-card']
   },
   dining: {
     title: "Dining",
