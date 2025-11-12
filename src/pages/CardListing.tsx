@@ -63,8 +63,8 @@ const CardListing = () => {
     try {
       setLoading(true);
       
-      // Build payload - DO NOT include eligiblityPayload unless submitted
-      const params: any = {
+      // Build payload matching the exact curl structure
+      const params = {
         slug: "",
         banks_ids: [],
         card_networks: [],
@@ -72,17 +72,13 @@ const CardListing = () => {
         credit_score: "",
         sort_by: filters.sort_by || "",
         free_cards: "",
+        eligiblityPayload: {
+          pincode: eligibilitySubmitted && eligibility.pincode ? eligibility.pincode : "",
+          inhandIncome: eligibilitySubmitted && eligibility.inhandIncome ? eligibility.inhandIncome : "",
+          empStatus: eligibilitySubmitted && eligibility.empStatus ? eligibility.empStatus : ""
+        },
         cardGeniusPayload: []
       };
-
-      // Only add eligibility if user has submitted it with complete data
-      if (eligibilitySubmitted && eligibility.pincode && eligibility.inhandIncome) {
-        params.eligiblityPayload = {
-          pincode: eligibility.pincode,
-          inhandIncome: eligibility.inhandIncome,
-          empStatus: eligibility.empStatus
-        };
-      }
 
       console.log('Fetching cards with params:', params);
       const response = await cardService.getCardListing(params);
@@ -95,6 +91,7 @@ const CardListing = () => {
       } else {
         console.error('Unexpected response format:', response);
         setCards([]);
+        toast.error("Failed to load cards");
       }
     } catch (error) {
       console.error('Failed to fetch cards:', error);

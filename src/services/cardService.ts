@@ -59,7 +59,7 @@ export const cardService = {
     credit_score: string;
     sort_by: string;
     free_cards: string;
-    eligiblityPayload?: {  // Optional - only sent when user submits
+    eligiblityPayload: {
       pincode: string;
       inhandIncome: string;
       empStatus: string;
