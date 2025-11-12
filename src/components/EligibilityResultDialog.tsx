@@ -23,10 +23,20 @@ export default function EligibilityResultDialog({
   networkUrl,
   onRecheck
 }: EligibilityResultDialogProps) {
-  // Determine eligibility ONLY if the returned list contains this exact card alias
-  const cards = Array.isArray(result?.data) ? result.data : [];
-  const matched = cards.some((c: any) => (c?.seo_card_alias || c?.card_alias) === cardAlias);
-  const isEligible = result?.status === 'success' && matched;
+  // Robust eligibility detection across possible response shapes
+  const raw = result?.data;
+  let cards: any[] = [];
+  let singleCard: any = null;
+  if (Array.isArray(raw)) cards = raw;
+  else if (raw && typeof raw === 'object') {
+    if (Array.isArray(raw.cards)) cards = raw.cards;
+    else if (Array.isArray(raw.items)) cards = raw.items;
+    else if (Array.isArray(raw.results)) cards = raw.results;
+    else singleCard = raw; // single card object
+  }
+  const matchedFromArray = cards.some((c: any) => (c?.seo_card_alias || c?.card_alias) === cardAlias);
+  const matchedSingle = !!singleCard && ((singleCard.seo_card_alias || singleCard.card_alias) === cardAlias);
+  const isEligible = result?.status === 'success' && (matchedFromArray || matchedSingle);
   const hasData = result !== null && result !== undefined;
 
   useEffect(() => {

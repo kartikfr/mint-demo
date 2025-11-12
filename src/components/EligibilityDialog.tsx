@@ -135,13 +135,25 @@ export default function EligibilityDialog({
 
       const response = await Promise.race([apiCall, timeout]) as any;
 
+      // Determine matched using robust parsing
+      const raw = response?.data;
+      let cards: any[] = [];
+      let singleCard: any = null;
+      if (Array.isArray(raw)) cards = raw;
+      else if (raw && typeof raw === 'object') {
+        if (Array.isArray(raw.cards)) cards = raw.cards;
+        else if (Array.isArray(raw.items)) cards = raw.items;
+        else if (Array.isArray(raw.results)) cards = raw.results;
+        else singleCard = raw;
+      }
+      const matchedFromArray = cards.some((c: any) => (c?.seo_card_alias || c?.card_alias) === cardAlias);
+      const matchedSingle = !!singleCard && ((singleCard.seo_card_alias || singleCard.card_alias) === cardAlias);
+
       // Track result analytics using exact card match
-      const cards = Array.isArray(response?.data) ? response.data : [];
-      const matched = cards.some((c: any) => (c?.seo_card_alias || c?.card_alias) === cardAlias);
       if (typeof window !== 'undefined' && (window as any).gtag) {
         (window as any).gtag('event', 'eligibility_result', {
           card_alias: cardAlias,
-          eligible: matched
+          eligible: matchedFromArray || matchedSingle
         });
       }
 
