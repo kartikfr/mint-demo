@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, X, ArrowUpDown } from "lucide-react";
+import { Search, Filter, X, ArrowUpDown, CheckCircle2, Sparkles } from "lucide-react";
 import { cardService } from "@/services/cardService";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,6 +20,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import confetti from 'canvas-confetti';
+import { toast } from "sonner";
 
 const CardListing = () => {
   const [cards, setCards] = useState<any[]>([]);
@@ -27,6 +36,10 @@ const CardListing = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [displayCount, setDisplayCount] = useState(12);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [showEligibilityDialog, setShowEligibilityDialog] = useState(false);
+  const [eligibilitySubmitted, setEligibilitySubmitted] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [eligibleCount, setEligibleCount] = useState(0);
   
   // API-compliant filters
   const [filters, setFilters] = useState({
@@ -40,8 +53,8 @@ const CardListing = () => {
 
   // Eligibility payload
   const [eligibility, setEligibility] = useState({
-    pincode: "110001",
-    inhandIncome: "50000",
+    pincode: "",
+    inhandIncome: "",
     empStatus: "salaried"
   });
 
@@ -103,13 +116,62 @@ const CardListing = () => {
       sort_by: "recommended",
       free_cards: false
     });
-    setEligibility({
-      pincode: "110001",
-      inhandIncome: "50000",
-      empStatus: "salaried"
-    });
     setSearchQuery("");
     setDisplayCount(12);
+  };
+
+  const handleEligibilitySubmit = async () => {
+    // Validate inputs
+    if (!eligibility.pincode || eligibility.pincode.length !== 6) {
+      toast.error("Please enter a valid 6-digit pincode");
+      return;
+    }
+    if (!eligibility.inhandIncome || parseInt(eligibility.inhandIncome) < 1000) {
+      toast.error("Please enter a valid monthly income");
+      return;
+    }
+
+    setShowEligibilityDialog(false);
+    setLoading(true);
+
+    try {
+      const response = await cardService.getCardListing({
+        slug: searchQuery || "",
+        banks_ids: filters.banks_ids,
+        card_networks: filters.card_networks,
+        annualFees: filters.annualFees,
+        credit_score: filters.credit_score,
+        sort_by: filters.sort_by,
+        free_cards: filters.free_cards,
+        eligiblityPayload: eligibility,
+        cardGeniusPayload: {}
+      });
+
+      if (response.data && response.data.cards) {
+        setCards(response.data.cards);
+        setEligibleCount(response.data.cards.length);
+        setEligibilitySubmitted(true);
+        
+        // Show confetti and success dialog
+        if (response.data.cards.length > 0) {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+          setShowSuccessDialog(true);
+        } else {
+          toast.error("No cards match your eligibility criteria", {
+            description: "Try adjusting your details or browse all cards"
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch eligible cards:', error);
+      toast.error("Unable to check eligibility. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Filter sidebar component
@@ -241,7 +303,7 @@ const CardListing = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="salaried">Salaried</SelectItem>
-                <SelectItem value="self-employed">Self-Employed</SelectItem>
+                <SelectItem value="self_employed">Self-Employed</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -294,16 +356,25 @@ const CardListing = () => {
               </Button>
             </div>
             
-            {/* Sort By */}
-            <div className="flex items-center gap-2 justify-center">
-              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Sort by:</span>
+            {/* Top Filters */}
+            <div className="flex flex-wrap items-center gap-3 justify-center">
+              <Button
+                variant={showEligibilityDialog ? "default" : "outline"}
+                onClick={() => setShowEligibilityDialog(true)}
+                className="gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                Eligibility Check
+                {eligibilitySubmitted && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+              </Button>
+
               <Select
                 value={filters.sort_by}
                 onValueChange={(value) => handleFilterChange('sort_by', value)}
               >
-                <SelectTrigger className="w-48 bg-background">
-                  <SelectValue />
+                <SelectTrigger className="w-48">
+                  <ArrowUpDown className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Sort By" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="recommended">Recommended</SelectItem>
@@ -311,6 +382,14 @@ const CardListing = () => {
                   <SelectItem value="annual_fees">Annual Fees</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Button
+                variant={filters.free_cards ? "default" : "outline"}
+                onClick={() => handleFilterChange('free_cards', !filters.free_cards)}
+                className="gap-2"
+              >
+                Free Cards Only
+              </Button>
             </div>
           </div>
         </div>
@@ -419,8 +498,14 @@ const CardListing = () => {
                         className="bg-card rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:-translate-y-2"
                       >
                         <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center p-4">
-                          {card.ltf === true && (
-                            <Badge className="absolute top-3 right-3 bg-green-500">LTF</Badge>
+                          {eligibilitySubmitted && (
+                            <Badge className="absolute top-3 left-3 bg-green-500 gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Eligible
+                            </Badge>
+                          )}
+                          {(card.joining_fee_text === "0" || card.joining_fee_text?.toLowerCase() === "free") && (
+                            <Badge className="absolute top-3 right-3 bg-primary">LTF</Badge>
                           )}
                           <img
                             src={card.card_bg_image || card.image}
@@ -509,6 +594,95 @@ const CardListing = () => {
           </div>
         </div>
       </section>
+
+      {/* Eligibility Dialog */}
+      <Dialog open={showEligibilityDialog} onOpenChange={setShowEligibilityDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Card Eligibility</DialogTitle>
+            <DialogDescription>
+              Enter your details and get personalised card recommendations
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Pin Code*</label>
+              <Input
+                type="text"
+                placeholder="122003"
+                value={eligibility.pincode}
+                onChange={(e) => setEligibility(prev => ({ ...prev, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
+                maxLength={6}
+                className="text-lg"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Monthly In Hand Income*</label>
+              <Input
+                type="text"
+                placeholder="₹1,00,000"
+                value={eligibility.inhandIncome}
+                onChange={(e) => setEligibility(prev => ({ ...prev, inhandIncome: e.target.value.replace(/\D/g, '') }))}
+                className="text-lg"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Income Type*</label>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  type="button"
+                  variant={eligibility.empStatus === "salaried" ? "default" : "outline"}
+                  onClick={() => setEligibility(prev => ({ ...prev, empStatus: "salaried" }))}
+                  className="h-16 flex-col gap-1"
+                >
+                  <span className="text-2xl">💼</span>
+                  <span>Salaried</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={eligibility.empStatus === "self_employed" ? "default" : "outline"}
+                  onClick={() => setEligibility(prev => ({ ...prev, empStatus: "self_employed" }))}
+                  className="h-16 flex-col gap-1"
+                >
+                  <span className="text-2xl">💻</span>
+                  <span>Self</span>
+                </Button>
+              </div>
+            </div>
+
+            <Button 
+              onClick={handleEligibilitySubmit}
+              className="w-full h-12 text-lg"
+              disabled={!eligibility.pincode || !eligibility.inhandIncome}
+            >
+              Find Eligible Cards
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader>
+            <DialogTitle className="text-3xl mb-2">🎉 Congratulations!</DialogTitle>
+            <DialogDescription className="text-lg">
+              You are eligible for <span className="text-2xl font-bold text-primary">{eligibleCount}</span> credit card{eligibleCount !== 1 ? 's' : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-muted-foreground mb-4">
+              Browse through your personalized recommendations below
+            </p>
+            <Button onClick={() => setShowSuccessDialog(false)} className="w-full">
+              View Cards
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
