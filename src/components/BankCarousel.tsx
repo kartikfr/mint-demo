@@ -54,7 +54,7 @@ const BankCarousel = () => {
               <img
                 src={bank.logo}
                 alt={bank.name}
-                className="max-w-full max-h-full object-contain filter grayscale hover:grayscale-0 transition-all"
+                className="max-w-full max-h-full object-contain transition-all"
               />
             </div>
           ))}
