@@ -281,24 +281,45 @@ const CardListing = () => {
       if (response.status === 'success' && response.data) {
         const savings: Record<string, number> = {};
         
-        // Normalize response into an array
+        // Prefer explicit savings array
         let items: any[] = [];
-        if (Array.isArray(response.data)) {
+        if (Array.isArray(response.data?.savings)) {
+          items = response.data.savings;
+        } else if (Array.isArray(response.data)) {
           items = response.data;
-        } else if (response.data.cards && Array.isArray(response.data.cards)) {
+        } else if (Array.isArray(response.data?.cards)) {
           items = response.data.cards;
         } else if (typeof response.data === 'object') {
-          items = Object.values(response.data);
+          // Some APIs return shape objects; flatten arrays only
+          items = Object.values(response.data)
+            .flat()
+            .filter((v: any) => Array.isArray(v))
+            .flat();
         }
         
         console.log('Cards array:', items);
         
         items.forEach((item: any) => {
-          const value = Number(item.total_savings_yearly ?? item.total_savings ?? item.savings ?? 0);
+          const valueRaw =
+            item.total_savings_yearly ??
+            item.total_savings ??
+            item.net_savings ??
+            item.annual_savings ??
+            item.savings ??
+            0;
+
+          const value = Number(valueRaw);
           if (!value || Number.isNaN(value)) return;
+
           const id = item.card_id ?? item.cardId ?? item.id ?? item.card?.id;
-          const alias = item.seo_card_alias ?? item.card_alias ?? item.alias ?? item.card?.seo_card_alias ?? item.card?.alias;
-          if (id) savings[String(id)] = value;
+          const alias =
+            item.card_alias ??
+            item.seo_card_alias ??
+            item.alias ??
+            item.card?.seo_card_alias ??
+            item.card?.alias;
+
+          if (id != null) savings[String(id)] = value;
           if (alias) savings[String(alias)] = value;
         });
         
