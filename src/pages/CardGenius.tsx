@@ -105,6 +105,8 @@ const CardGenius = () => {
   const [activeTab, setActiveTab] = useState<'quick' | 'detailed'>('quick');
   const [selectedCard, setSelectedCard] = useState<CardResult | null>(null);
   const [showLifetimeFreeOnly, setShowLifetimeFreeOnly] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [breakdownView, setBreakdownView] = useState<'yearly' | 'monthly'>('yearly');
 
   const currentQuestion = questions[currentStep];
   const progress = ((currentStep + 1) / questions.length) * 100;
@@ -369,92 +371,146 @@ const CardGenius = () => {
 
             {/* Savings Breakdown */}
             <div className="bg-white rounded-xl border border-border p-6">
-              <h2 className="text-xl font-bold text-foreground mb-4">Your Total Savings Breakdown</h2>
+              <h2 className="text-xl font-bold text-foreground mb-6">Your Total Savings Breakdown</h2>
               
-              {/* Category Pills */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {Object.entries(selectedCard.spending_breakdown || {}).map(([category, details]) => {
-                  if (!details || !details.spend || details.spend === 0) return null;
-                  return (
-                    <button
-                      key={category}
-                      className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium capitalize"
-                    >
-                      {category.replace(/_/g, ' ')} Savings
-                    </button>
-                  );
-                })}
+              {/* Category Pills - Horizontal Scroll */}
+              <div className="relative mb-6">
+                <div className="overflow-x-auto pb-2 scrollbar-hide">
+                  <div className="flex gap-3 min-w-max">
+                    {Object.entries(selectedCard.spending_breakdown || {}).map(([category, details]) => {
+                      if (!details || !details.spend || details.spend === 0) return null;
+                      const isActive = selectedCategory === category || (!selectedCategory && Object.keys(selectedCard.spending_breakdown).findIndex(k => selectedCard.spending_breakdown[k]?.spend > 0) === Object.keys(selectedCard.spending_breakdown).indexOf(category));
+                      return (
+                        <button
+                          key={category}
+                          onClick={() => setSelectedCategory(category)}
+                          className={`px-6 py-3 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+                            isActive 
+                              ? 'bg-primary text-primary-foreground shadow-md' 
+                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          }`}
+                        >
+                          {category.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Savings
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
-              {/* Breakdown Table */}
-              <div className="border border-border rounded-lg overflow-hidden">
-                <div className="flex bg-muted border-b border-border">
-                  <div className="flex-1 p-4">
-                    <div className="font-semibold text-sm text-foreground">Savings Breakdown</div>
-                  </div>
-                  <div className="w-32 p-4 text-center">
-                    <div className="font-semibold text-sm text-foreground">Yearly</div>
-                  </div>
-                  <div className="w-32 p-4 text-center">
-                    <div className="font-semibold text-sm text-foreground">Monthly</div>
-                  </div>
-                </div>
-                
-                {Object.entries(selectedCard.spending_breakdown || {}).map(([category, details]) => {
-                  if (!details || !details.spend || details.spend === 0) return null;
-                  
-                  const yearlySpend = (details.spend || 0) * 12;
-                  const yearlyPoints = (details.points_earned || 0) * 12;
-                  const yearlySavings = (details.savings || 0) * 12;
-                  
-                  return (
-                    <div key={category} className="border-b border-border last:border-b-0">
-                      <div className="flex items-center p-4">
-                        <div className="flex-1">
-                          <p className="font-medium text-foreground capitalize mb-2">{category.replace(/_/g, ' ')}</p>
-                          <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">
-                              Total Spends: <span className="font-medium text-foreground">₹{yearlySpend.toLocaleString()}</span>
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              Points Earned: <span className="font-medium text-foreground">{yearlyPoints.toLocaleString()}</span>
-                            </p>
-                            {details.conv_rate && (
-                              <p className="text-sm text-muted-foreground">
-                                Conversion Rate: <span className="font-medium text-foreground">₹{details.conv_rate}</span> per point
-                              </p>
-                            )}
-                          </div>
-                          {details.explanation && details.explanation.length > 0 && (
-                            <div className="mt-2 p-3 bg-blue-50 rounded-lg">
-                              <p className="text-xs font-semibold text-primary mb-1">How it's calculated:</p>
-                              {details.explanation.map((exp, idx) => (
-                                <div 
-                                  key={idx} 
-                                  className="text-xs text-foreground"
-                                  dangerouslySetInnerHTML={{ __html: exp }}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div className="w-32 text-center">
-                          <span className="font-semibold text-foreground">₹{yearlySavings.toLocaleString()}</span>
-                        </div>
-                        <div className="w-32 text-center">
-                          <span className="font-semibold text-foreground">₹{(details.savings || 0).toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                
-                <div className="flex bg-muted p-4 font-bold">
-                  <div className="flex-1 text-foreground">Total Savings</div>
-                  <div className="w-32 text-center text-foreground">₹{selectedCard.total_savings_yearly.toLocaleString()}</div>
-                  <div className="w-32 text-center text-foreground">₹{Math.round(selectedCard.total_savings_yearly / 12).toLocaleString()}</div>
+              {/* Savings Breakdown Title and Toggle */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-foreground">Savings Breakdown</h3>
+                <div className="flex gap-2 bg-muted rounded-lg p-1">
+                  <button
+                    onClick={() => setBreakdownView('yearly')}
+                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      breakdownView === 'yearly' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Yearly
+                  </button>
+                  <button
+                    onClick={() => setBreakdownView('monthly')}
+                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      breakdownView === 'monthly' 
+                        ? 'bg-foreground text-background' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Monthly
+                  </button>
                 </div>
               </div>
+
+              {/* Category Breakdown Details */}
+              {(() => {
+                const activeCategory = selectedCategory || Object.keys(selectedCard.spending_breakdown).find(k => selectedCard.spending_breakdown[k]?.spend > 0);
+                if (!activeCategory) return null;
+                const details = selectedCard.spending_breakdown[activeCategory];
+                if (!details || !details.spend) return null;
+
+                const isYearly = breakdownView === 'yearly';
+                const multiplier = isYearly ? 12 : 1;
+                const spend = (details.spend || 0) * multiplier;
+                const pointsEarned = (details.points_earned || 0) * multiplier;
+                const convRate = details.conv_rate || 0;
+                const savings = (details.savings || 0) * multiplier;
+
+                return (
+                  <div className="border border-border rounded-xl p-6 bg-muted/30">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center pb-4 border-b border-border">
+                        <span className="text-muted-foreground">Total Spends</span>
+                        <span className="text-lg font-semibold text-foreground">₹{spend.toLocaleString()}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center pb-4 border-b border-border">
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">Points Earned</span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <p>Reward points earned on your spending in this category</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <span className="text-lg font-semibold text-foreground">{pointsEarned.toLocaleString()}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center pb-4 border-b border-border">
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">Value of 1 Point</span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <p>The monetary value of each reward point</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <span className="text-lg font-semibold text-foreground">₹{convRate.toFixed(2)}</span>
+                      </div>
+                      
+                      {pointsEarned > 0 && convRate > 0 && (
+                        <div className="text-center py-2 text-sm text-muted-foreground">
+                          ₹{pointsEarned.toLocaleString()} × {convRate.toFixed(2)}
+                        </div>
+                      )}
+                      
+                      <div className="flex justify-between items-center pt-2 bg-green-50 dark:bg-green-950 -mx-6 px-6 py-4 rounded-b-xl">
+                        <span className="font-semibold text-foreground">Total Savings</span>
+                        <span className="text-2xl font-bold text-green-600">₹{savings.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    {/* Explanation */}
+                    {details.explanation && details.explanation.length > 0 && (
+                      <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <p className="text-xs font-semibold text-primary mb-2">How it&apos;s calculated:</p>
+                        <div className="space-y-1">
+                          {details.explanation.map((exp, idx) => (
+                            <div 
+                              key={idx} 
+                              className="text-xs text-foreground"
+                              dangerouslySetInnerHTML={{ __html: exp }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </main>
         </div>
