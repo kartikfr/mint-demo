@@ -63,7 +63,7 @@ const CardListing = () => {
     try {
       setLoading(true);
       
-      // Build payload matching backend requirements exactly
+      // Build payload - DO NOT include eligiblityPayload unless submitted
       const params: any = {
         slug: "",
         banks_ids: [],
@@ -72,15 +72,10 @@ const CardListing = () => {
         credit_score: "",
         sort_by: filters.sort_by || "",
         free_cards: "",
-        eligiblityPayload: {
-          pincode: "",
-          inhandIncome: "",
-          empStatus: ""
-        },
-        cardGeniusPayload: []  // MUST be empty array, not object
+        cardGeniusPayload: []
       };
 
-      // Update eligibility only if submitted
+      // Only add eligibility if user has submitted it with complete data
       if (eligibilitySubmitted && eligibility.pincode && eligibility.inhandIncome) {
         params.eligiblityPayload = {
           pincode: eligibility.pincode,

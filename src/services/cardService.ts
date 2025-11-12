@@ -59,12 +59,12 @@ export const cardService = {
     credit_score: string;
     sort_by: string;
     free_cards: string;
-    eligiblityPayload: {
+    eligiblityPayload?: {  // Optional - only sent when user submits
       pincode: string;
       inhandIncome: string;
       empStatus: string;
     };
-    cardGeniusPayload: any[];  // Empty array
+    cardGeniusPayload: any[];
   }) {
     const response = await authManager.makeAuthenticatedRequest(
       `${BASE_URL}/cardgenius/cards`,
