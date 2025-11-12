@@ -276,18 +276,35 @@ const CardListing = () => {
       });
 
       const response = await cardService.calculateCardGenius(spendingData);
+      console.log('Genius API Response:', response);
       
       if (response.status === 'success' && response.data) {
         const savings: Record<number, number> = {};
-        response.data.forEach((item: any) => {
+        
+        // Handle different response formats
+        let cardsArray: any[] = [];
+        if (Array.isArray(response.data)) {
+          cardsArray = response.data;
+        } else if (response.data.cards && Array.isArray(response.data.cards)) {
+          cardsArray = response.data.cards;
+        } else if (typeof response.data === 'object') {
+          // If data is an object, convert it to an array
+          cardsArray = Object.values(response.data);
+        }
+        
+        console.log('Cards array:', cardsArray);
+        
+        cardsArray.forEach((item: any) => {
           if (item.card_id && item.total_savings_yearly) {
             savings[item.card_id] = item.total_savings_yearly;
           }
         });
+        
+        console.log('Calculated savings:', savings);
         setCardSavings(savings);
         
         toast.success("Savings calculated!", {
-          description: "Cards are now sorted by potential savings"
+          description: `Found savings for ${Object.keys(savings).length} cards`
         });
         
         confetti({
