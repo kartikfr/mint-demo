@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { cardService } from '@/services/cardService';
 import Navigation from '@/components/Navigation';
-import { Star, ChevronDown, ChevronUp, Share2, ExternalLink, Gift, Award, Sparkles } from 'lucide-react';
+import { Star, ChevronDown, ChevronUp, Share2, ExternalLink, Gift, Award, Sparkles, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -71,6 +71,7 @@ interface CardData {
 
 export default function CardDetails() {
   const { alias } = useParams<{ alias: string }>();
+  const navigate = useNavigate();
   const [card, setCard] = useState<CardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFixedCTA, setShowFixedCTA] = useState(false);
@@ -202,8 +203,22 @@ export default function CardDetails() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      {/* Breadcrumb */}
+      {/* Back Button & Breadcrumb */}
       <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center gap-4 mb-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              navigate('/cards');
+              setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+            }}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Cards
+          </Button>
+        </div>
         <div className="text-sm text-muted-foreground">
           <Link to="/" className="hover:text-foreground">Home</Link>
           {' / '}
