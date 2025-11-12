@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, X, ArrowUpDown, CheckCircle2, Sparkles } from "lucide-react";
+import { Search, Filter, X, ArrowUpDown, CheckCircle2, Sparkles, ShoppingBag, Utensils, Fuel, Plane, Coffee, ShoppingCart, CreditCard } from "lucide-react";
 import { cardService } from "@/services/cardService";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -45,8 +45,10 @@ const CardListing = () => {
     annualFees: "",
     credit_score: "",
     sort_by: "",  // Empty string by default, can be "recommended", "annual_savings", or "annual_fees"
-    free_cards: false
+    free_cards: false,
+    category: "all"  // all, fuel, shopping, online-food, dining, grocery, travel, utility
   });
+  const [showGeniusDialog, setShowGeniusDialog] = useState(false);
 
   // Eligibility payload
   const [eligibility, setEligibility] = useState({
@@ -152,6 +154,14 @@ const CardListing = () => {
         });
       }
 
+      // 4) Category filter (based on seo_alias)
+      if (Array.isArray(incomingCards) && filters.category && filters.category !== 'all') {
+        incomingCards = incomingCards.filter((card: any) => {
+          const seoAlias = (card.seo_alias || card.seo_card_alias || '').toLowerCase();
+          return seoAlias.includes(filters.category);
+        });
+      }
+
       setCards(Array.isArray(incomingCards) ? incomingCards : []);
     } catch (error) {
       console.error('Failed to fetch cards:', error);
@@ -189,7 +199,8 @@ const CardListing = () => {
       annualFees: "",
       credit_score: "",
       sort_by: "recommended",
-      free_cards: false
+      free_cards: false,
+      category: "all"
     });
     setSearchQuery("");
     setDisplayCount(12);
@@ -328,6 +339,48 @@ const CardListing = () => {
           <h1 className="text-4xl lg:text-5xl font-bold text-center mb-6">
             Explore 200+ Credit Cards
           </h1>
+          
+          {/* Category Navigation */}
+          <div className="max-w-5xl mx-auto mb-8">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {[
+                { id: 'all', label: 'All Cards', icon: CreditCard },
+                { id: 'fuel', label: 'Fuel', icon: Fuel },
+                { id: 'shopping', label: 'Shopping', icon: ShoppingBag },
+                { id: 'online-food', label: 'Online Food', icon: Coffee },
+                { id: 'dining', label: 'Dining', icon: Utensils },
+                { id: 'grocery', label: 'Grocery', icon: ShoppingCart },
+                { id: 'travel', label: 'Travel', icon: Plane },
+                { id: 'utility', label: 'Utility', icon: CreditCard },
+              ].map((cat) => {
+                const Icon = cat.icon;
+                const isActive = filters.category === cat.id;
+                return (
+                  <Button
+                    key={cat.id}
+                    variant={isActive ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleFilterChange('category', cat.id)}
+                    className="gap-2"
+                  >
+                    <Icon className="w-4 h-4" />
+                    {cat.label}
+                  </Button>
+                );
+              })}
+              {filters.category !== 'all' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowGeniusDialog(true)}
+                  className="gap-2 text-primary border border-primary/30 hover:bg-primary/10"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Try Genius
+                </Button>
+              )}
+            </div>
+          </div>
           
           <div className="max-w-2xl mx-auto space-y-4">
             <div className="flex gap-2">
