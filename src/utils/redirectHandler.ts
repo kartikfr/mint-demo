@@ -3,8 +3,23 @@
  * Manages secure redirects to bank partner websites with interstitial page
  */
 
+// Hard-coded bank URL mapping - ONLY these URLs are allowed
+const BANK_URLS: Record<string, string> = {
+  AXIS: "https://www.axis.bank.in/cards/credit-card",
+  IDFC: "https://www.idfcfirst.bank.in/credit-card",
+  SBI: "https://www.sbicard.com/en/personal/credit-cards.page",
+  HDFC: "https://applyonline.hdfcbank.com/cards/credit-cards.html?CHANNELSOURCE=ZETA&LGCode=MKTG&mc_id=hdfcbank_ccntb_paid_search_brand_ntb_unified&utm_source=paid_search_ntb&utm_medium=search&utm_campaign=CC-ACQ-HDFC_CC_Retail_Google_Search_Leads_NTB_br_super_brand_top-city&utm_content=marketing&utm_creative=generic_top-city_pixel-ltf&utm_term=Hdfc%20Credit%20Card&p_id=&gad_source=1&gad_campaignid=22991160211&gbraid=0AAAAAD74LQZOMxLfZof2fQmP-ULVXgTi9&gclid=CjwKCAiAoNbIBhB5EiwAZFbYGAjIZ0gduKikbOozHs7jAjebF18FVdeGRL1aD1BGcqbgGXsLLyTp7xoCyhoQAvD_BwE#nbb",
+  AU: "https://cconboarding.aubank.in/auccself/#/landing",
+  INDUSIND: "https://www.indusind.bank.in/in/en/personal/cards/credit-card.html",
+  STAN_CHART: "https://www.sc.com/in/credit-cards/",
+  AMEX: "https://www.americanexpress.com/en-in/",
+  HSBC: "https://www.hsbc.co.in/credit-cards/products/visa-platinum/?WABFormEntryCommand=cmd_init&form.campaign_id=Platinum_Product&form.source=ZEE&WT.ac=CC_Platinum_zee2&gclid=NA&card=vpc&cid=INM:OK(:A0:CC:05:2505:031:ZEECC_Platinum&gad_source=1",
+  KOTAK: "https://cards.kotak.com/",
+  ICICI: "https://www.icici.bank.in/personal-banking/cards"
+};
+
 export interface RedirectParams {
-  networkUrl: string;
+  networkUrl?: string; // Optional now, will use hard-coded URLs
   bankName: string;
   bankLogo?: string;
   cardName: string;
@@ -12,37 +27,72 @@ export interface RedirectParams {
 }
 
 /**
+ * Normalize bank name to match hard-coded URL keys
+ */
+const normalizeBankName = (bankName: string): string | null => {
+  const normalized = bankName.toUpperCase().trim();
+  
+  // Direct matches
+  if (BANK_URLS[normalized]) return normalized;
+  
+  // Handle common variations
+  const variations: Record<string, string> = {
+    'AXIS BANK': 'AXIS',
+    'IDFC FIRST': 'IDFC',
+    'IDFC FIRST BANK': 'IDFC',
+    'SBI CARD': 'SBI',
+    'SBI CARDS': 'SBI',
+    'STATE BANK OF INDIA': 'SBI',
+    'HDFC BANK': 'HDFC',
+    'AU SMALL FINANCE': 'AU',
+    'AU SMALL FINANCE BANK': 'AU',
+    'AU BANK': 'AU',
+    'INDUSIND': 'INDUSIND',
+    'INDUSIND BANK': 'INDUSIND',
+    'STANDARD CHARTERED': 'STAN_CHART',
+    'STANDARD CHARTERED BANK': 'STAN_CHART',
+    'SC BANK': 'STAN_CHART',
+    'AMERICAN EXPRESS': 'AMEX',
+    'AMEX': 'AMEX',
+    'HSBC': 'HSBC',
+    'HSBC BANK': 'HSBC',
+    'KOTAK': 'KOTAK',
+    'KOTAK MAHINDRA': 'KOTAK',
+    'KOTAK MAHINDRA BANK': 'KOTAK',
+    'ICICI': 'ICICI',
+    'ICICI BANK': 'ICICI'
+  };
+  
+  return variations[normalized] || null;
+};
+
+/**
+ * Get hard-coded bank URL for a given bank name
+ */
+const getBankUrl = (bankName: string): string | null => {
+  const normalizedKey = normalizeBankName(bankName);
+  return normalizedKey ? BANK_URLS[normalizedKey] : null;
+};
+
+/**
  * Opens the redirect interstitial page in a new tab
  * @param params - Redirect parameters including bank and card details
  * @returns Window object of the newly opened tab, or null if blocked
  */
 export const openRedirectInterstitial = (params: RedirectParams): Window | null => {
-  const { networkUrl, bankName, bankLogo, cardName, cardId } = params;
+  const { bankName, bankLogo, cardName, cardId } = params;
 
-  // Validate required parameters
-  if (!networkUrl) {
-    console.error('Redirect handler: networkUrl is required');
-    return null;
-  }
-
-  // Sanitize and validate the URL
-  let validatedUrl: URL;
-  try {
-    validatedUrl = new URL(networkUrl);
-    
-    // Only allow https URLs (with exception for local development)
-    if (validatedUrl.protocol !== 'https:' && !validatedUrl.hostname.includes('localhost')) {
-      console.error('Redirect handler: Only HTTPS URLs are allowed');
-      return null;
-    }
-  } catch (error) {
-    console.error('Redirect handler: Invalid URL', error);
-    return null;
+  // Get hard-coded bank URL
+  const bankUrl = getBankUrl(bankName);
+  
+  if (!bankUrl) {
+    console.error('Redirect handler: Bank not found in whitelist:', bankName);
+    // Still proceed to interstitial to show user-friendly error
   }
 
   // Build query parameters for the interstitial page
   const queryParams = new URLSearchParams({
-    url: networkUrl,
+    url: bankUrl || '',
     bank: bankName,
     card: cardName,
   });
@@ -63,7 +113,7 @@ export const openRedirectInterstitial = (params: RedirectParams): Window | null 
     cardId,
     cardName,
     bankName,
-    targetUrl: networkUrl,
+    targetUrl: bankUrl || '',
   });
 
   // Open in new tab

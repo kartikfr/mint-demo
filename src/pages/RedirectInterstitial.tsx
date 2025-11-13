@@ -37,7 +37,27 @@ export default function RedirectInterstitial() {
     const cardName = searchParams.get('card') || '';
 
     // Validate target URL
-    if (!targetUrl) {
+    if (!targetUrl || targetUrl === '') {
+      setState(prev => ({ 
+        ...prev, 
+        bankName,
+        bankLogo,
+        cardName,
+        status: 'error' 
+      }));
+      return;
+    }
+
+    // Additional HTTPS validation
+    try {
+      const url = new URL(targetUrl);
+      if (url.protocol !== 'https:' && !url.hostname.includes('localhost')) {
+        console.error('Non-HTTPS URL detected');
+        setState(prev => ({ ...prev, status: 'error' }));
+        return;
+      }
+    } catch (e) {
+      console.error('Invalid URL format');
       setState(prev => ({ ...prev, status: 'error' }));
       return;
     }
@@ -122,17 +142,26 @@ export default function RedirectInterstitial() {
           </div>
           
           <h1 className="text-2xl md:text-3xl font-bold mb-4 text-foreground">
-            Redirect Error
+            We're preparing to take you to {state.bankName || 'the bank site'}
           </h1>
           
-          <p className="text-muted-foreground mb-8">
-            We couldn't process your redirect. The link may be invalid or expired.
+          <p className="text-muted-foreground mb-4">
+            The redirect link is missing or invalid. This may be due to:
           </p>
+          
+          <ul className="text-left text-muted-foreground mb-8 max-w-md mx-auto space-y-2">
+            <li>• Bank not yet configured in our system</li>
+            <li>• Temporary connectivity issue</li>
+            <li>• Invalid bank identifier</li>
+          </ul>
 
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col gap-3 justify-center max-w-sm mx-auto">
             <Button variant="outline" onClick={() => navigate('/cards')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Cards
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/contact')}>
+              Contact Support
             </Button>
           </div>
         </div>
@@ -142,6 +171,11 @@ export default function RedirectInterstitial() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
+      {/* Meta refresh fallback for no-JS users */}
+      <noscript>
+        <meta httpEquiv="refresh" content={`3;url=${state.targetUrl}`} />
+      </noscript>
+      
       <div className="max-w-2xl w-full bg-card rounded-2xl shadow-2xl p-8 md:p-12 text-center animate-fade-in border border-border/50">
         {/* Bank Logo */}
         {state.bankLogo && (
@@ -239,6 +273,12 @@ export default function RedirectInterstitial() {
             <br />
             <a href="/privacy" className="text-primary hover:underline ml-1">Privacy Policy</a>
           </p>
+          <noscript>
+            <p className="mt-4 text-warning">
+              JavaScript is disabled. You will be redirected automatically in 3 seconds, or{' '}
+              <a href={state.targetUrl} className="text-primary hover:underline font-semibold">click here</a>.
+            </p>
+          </noscript>
         </div>
       </div>
     </div>
