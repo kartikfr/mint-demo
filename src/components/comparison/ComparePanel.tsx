@@ -18,6 +18,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 interface ComparePanelProps {
   open: boolean;
@@ -259,7 +260,7 @@ export function ComparePanel({ open, onOpenChange }: ComparePanelProps) {
                                   )}
                                   {field.html ? (
                                     <div 
-                                      dangerouslySetInnerHTML={{ __html: value || 'N/A' }}
+                                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(value || 'N/A') }}
                                       className="prose prose-sm max-w-none line-clamp-3"
                                     />
                                   ) : (

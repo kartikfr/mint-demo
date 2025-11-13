@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, Sparkles, ChevronDown, Info, Check, X, TrendingU
 import { cardService } from "@/services/cardService";
 import type { SpendingData } from "@/services/cardService";
 import { useToast } from "@/hooks/use-toast";
+import { sanitizeHtml } from "@/lib/sanitize";
 import {
   Tooltip,
   TooltipContent,
@@ -515,7 +516,7 @@ const CardGenius = () => {
                             <div 
                               key={idx} 
                               className="text-xs text-foreground"
-                              dangerouslySetInnerHTML={{ __html: exp }}
+                              dangerouslySetInnerHTML={{ __html: sanitizeHtml(exp) }}
                             />
                           ))}
                         </div>

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { toast } from 'sonner';
 import EligibilityDialog from '@/components/EligibilityDialog';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 interface CardData {
   id: number;
@@ -495,7 +496,7 @@ export default function CardDetails() {
                   <h3 className="font-semibold text-foreground">Redemption Options</h3>
                 </div>
                 <div 
-                  dangerouslySetInnerHTML={{ __html: card.redemption_options }} 
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(card.redemption_options) }}
                   className="prose prose-sm max-w-none text-muted-foreground 
                     [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-2 
                     [&>li]:text-muted-foreground [&>li]:leading-relaxed
@@ -517,7 +518,7 @@ export default function CardDetails() {
                 <AccordionContent className="px-6">
                   <p className="font-semibold mb-2">{card.bank_fee_structure.forex_markup}</p>
                   {card.bank_fee_structure.forex_markup_comment && (
-                    <div dangerouslySetInnerHTML={{ __html: card.bank_fee_structure.forex_markup_comment }} className="prose prose-sm max-w-none text-muted-foreground" />
+                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(card.bank_fee_structure.forex_markup_comment) }} className="prose prose-sm max-w-none text-muted-foreground" />
                   )}
                 </AccordionContent>
               </AccordionItem>
@@ -527,7 +528,7 @@ export default function CardDetails() {
                   <AccordionContent className="px-6">
                     <p className="font-semibold mb-2">{card.bank_fee_structure.apr_fees}</p>
                     {card.bank_fee_structure.apr_fees_comment && (
-                      <div dangerouslySetInnerHTML={{ __html: card.bank_fee_structure.apr_fees_comment }} className="prose prose-sm max-w-none text-muted-foreground" />
+                      <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(card.bank_fee_structure.apr_fees_comment) }} className="prose prose-sm max-w-none text-muted-foreground" />
                     )}
                   </AccordionContent>
                 </AccordionItem>
@@ -638,7 +639,7 @@ export default function CardDetails() {
                         <div className="flex-1">
                           <h3 className="font-bold text-lg text-foreground mb-3">{benefit.sub_type}</h3>
                           <div 
-                            dangerouslySetInnerHTML={{ __html: benefit.html_text }} 
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(benefit.html_text) }}
                             className="prose prose-sm max-w-none text-muted-foreground 
                               [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:space-y-1 
                               [&>li]:text-muted-foreground [&>li]:leading-relaxed
