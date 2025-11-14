@@ -381,6 +381,7 @@ export default function CardDetails() {
               size="lg"
               variant="outline"
               onClick={() => setIsComparePanelOpen(true)}
+              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
             >
               Compare
             </Button>
@@ -649,6 +650,13 @@ export default function CardDetails() {
                       ? card.product_benefits?.length 
                       : card.product_benefits?.filter(b => b.benefit_type === category).length;
                     
+                    // Format category name: replace underscores and title case
+                    const formattedCategory = category
+                      .replace(/_/g, ' ')
+                      .split(' ')
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                      .join(' ');
+                    
                     return (
                       <button
                         key={category}
@@ -659,7 +667,7 @@ export default function CardDetails() {
                             : 'bg-card text-muted-foreground hover:bg-muted border border-border'
                         }`}
                       >
-                        <span>{category}</span>
+                        <span>{formattedCategory}</span>
                         <span className={`ml-2 text-xs ${isActive ? 'opacity-90' : 'opacity-60'}`}>
                           ({categoryCount})
                         </span>
