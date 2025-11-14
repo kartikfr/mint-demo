@@ -16,6 +16,9 @@ interface Card {
     name: string;
   };
   annual_saving?: number;
+  total_savings_yearly?: number;
+  joining_fees?: string;
+  card_type?: string;
 }
 
 interface SpendingQuestion {
@@ -188,43 +191,77 @@ const BeatMyCard = () => {
         console.log("User card alias:", selectedCard.seo_card_alias);
         console.log("Top card alias:", topCard.seo_card_alias);
         
-        // Fetch detailed data for both cards
-        const [userCard, geniusCard] = await Promise.all([
-          cardService.getCardDetailsByAlias(selectedCard.seo_card_alias),
-          cardService.getCardDetailsByAlias(topCard.seo_card_alias)
-        ]);
+        // Try to fetch detailed data for both cards, but use API data as fallback
+        let userCardData = null;
+        let geniusCardData = null;
+        
+        try {
+          const [userCard, geniusCard] = await Promise.all([
+            cardService.getCardDetailsByAlias(selectedCard.seo_card_alias).catch(err => {
+              console.error("User card fetch failed:", err);
+              return null;
+            }),
+            cardService.getCardDetailsByAlias(topCard.seo_card_alias).catch(err => {
+              console.error("Genius card fetch failed:", err);
+              return null;
+            })
+          ]);
 
-        console.log("=== User Card Details Response ===", userCard);
-        console.log("=== Genius Card Details Response ===", geniusCard);
+          console.log("=== User Card Details Response ===", userCard);
+          console.log("=== Genius Card Details Response ===", geniusCard);
 
-        if (userCard.status === "success" && userCard.data?.[0]) {
-          const userData = {
-            ...userCard.data[0],
-            annual_saving: userCardInResults.total_savings || 0
-          };
-          console.log("=== Setting User Card Data ===", userData);
-          setUserCardData(userData);
-        } else {
-          console.error("Failed to load user card details");
-          toast.error("Failed to load your card details");
-          return;
+          // User's card data
+          if (userCard?.status === "success" && userCard.data?.[0]) {
+            userCardData = {
+              ...userCard.data[0],
+              annual_saving: userCardInResults.total_savings || 0,
+              total_savings_yearly: userCardInResults.total_savings_yearly || 0
+            };
+          } else {
+            // Fallback to selected card data with API savings
+            userCardData = {
+              ...selectedCard,
+              annual_saving: userCardInResults.total_savings || 0,
+              total_savings_yearly: userCardInResults.total_savings_yearly || 0,
+              name: userCardInResults.card_name || selectedCard.name
+            };
+            console.log("Using fallback user card data");
+          }
+
+          // Genius card data
+          if (geniusCard?.status === "success" && geniusCard.data?.[0]) {
+            geniusCardData = {
+              ...geniusCard.data[0], 
+              annual_saving: topCard.total_savings || 0,
+              total_savings_yearly: topCard.total_savings_yearly || 0
+            };
+          } else {
+            // Fallback: Create card data from API response
+            geniusCardData = {
+              id: topCard.id,
+              name: topCard.card_name,
+              seo_card_alias: topCard.seo_card_alias,
+              image: cards.find(c => c.seo_card_alias === topCard.seo_card_alias)?.image || selectedCard.image,
+              annual_saving: topCard.total_savings || 0,
+              total_savings_yearly: topCard.total_savings_yearly || 0,
+              banks: { name: topCard.card_name.split(' ')[0] } // Extract bank name from card name
+            };
+            console.log("Using fallback genius card data:", geniusCardData);
+          }
+
+          console.log("=== Setting User Card Data ===", userCardData);
+          console.log("=== Setting Genius Card Data ===", geniusCardData);
+          
+          setUserCardData(userCardData);
+          setGeniusCardData(geniusCardData);
+          
+          console.log("=== Setting step to results ===");
+          setStep('results');
+          
+        } catch (error) {
+          console.error("Error processing card data:", error);
+          toast.error("Failed to process card comparison");
         }
-
-        if (geniusCard.status === "success" && geniusCard.data?.[0]) {
-          const geniusData = {
-            ...geniusCard.data[0], 
-            annual_saving: topCard.total_savings || 0
-          };
-          console.log("=== Setting Genius Card Data ===", geniusData);
-          setGeniusCardData(geniusData);
-        } else {
-          console.error("Failed to load genius card details");
-          toast.error("Failed to load recommended card details");
-          return;
-        }
-
-        console.log("=== Setting step to results ===");
-        setStep('results');
       } else {
         console.error("Invalid API response structure:", calculateResponse);
         toast.error("No results found. Please try again.");
@@ -522,9 +559,14 @@ const BeatMyCard = () => {
                   <div className="text-center mb-4">
                     <h3 className="text-2xl font-bold mb-2 text-foreground">{userCardData.name}</h3>
                     <p className="text-muted-foreground font-medium">{userCardData.banks?.name || 'Credit Card'}</p>
+                    {userCardData.card_type && (
+                      <span className="inline-block mt-2 px-3 py-1 bg-muted rounded-full text-xs font-semibold uppercase text-muted-foreground">
+                        {userCardData.card_type}
+                      </span>
+                    )}
                   </div>
                   
-                  <div className={`rounded-2xl p-6 text-center ${
+                  <div className={`rounded-2xl p-6 text-center mb-4 ${
                     isUserWinner ? 'bg-primary/10' : 'bg-muted/50'
                   }`}>
                     <p className="text-sm text-muted-foreground mb-2 uppercase tracking-wide font-semibold">Annual Savings</p>
@@ -535,6 +577,12 @@ const BeatMyCard = () => {
                       ≈ ₹{Math.round((userCardData.annual_saving || 0) / 12).toLocaleString('en-IN')}/month
                     </p>
                   </div>
+                  
+                  {userCardData.joining_fees && (
+                    <div className="text-center text-sm text-muted-foreground">
+                      <span className="font-medium">Joining Fee:</span> ₹{userCardData.joining_fees}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -564,9 +612,14 @@ const BeatMyCard = () => {
                   <div className="text-center mb-4">
                     <h3 className="text-2xl font-bold mb-2 text-foreground">{geniusCardData.name}</h3>
                     <p className="text-muted-foreground font-medium">{geniusCardData.banks?.name || 'Credit Card'}</p>
+                    {geniusCardData.card_type && (
+                      <span className="inline-block mt-2 px-3 py-1 bg-muted rounded-full text-xs font-semibold uppercase text-muted-foreground">
+                        {geniusCardData.card_type}
+                      </span>
+                    )}
                   </div>
                   
-                  <div className={`rounded-2xl p-6 text-center ${
+                  <div className={`rounded-2xl p-6 text-center mb-4 ${
                     !isUserWinner ? 'bg-secondary/10' : 'bg-muted/50'
                   }`}>
                     <p className="text-sm text-muted-foreground mb-2 uppercase tracking-wide font-semibold">Annual Savings</p>
@@ -577,6 +630,12 @@ const BeatMyCard = () => {
                       ≈ ₹{Math.round((geniusCardData.annual_saving || 0) / 12).toLocaleString('en-IN')}/month
                     </p>
                   </div>
+                  
+                  {geniusCardData.joining_fees && (
+                    <div className="text-center text-sm text-muted-foreground">
+                      <span className="font-medium">Joining Fee:</span> ₹{geniusCardData.joining_fees}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
