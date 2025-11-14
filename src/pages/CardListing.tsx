@@ -406,29 +406,25 @@ const CardListing = () => {
         <CollapsibleContent className="pt-3 space-y-2">
           {[
             { id: 'all', label: 'All Cards', icon: CreditCard },
-            { id: 'shopping', label: 'Shopping', icon: ShoppingBag },
-            { id: 'online-food', label: 'Food Delivery', icon: Coffee },
             { id: 'fuel', label: 'Fuel', icon: Fuel },
+            { id: 'shopping', label: 'Shopping', icon: ShoppingBag },
+            { id: 'online-food', label: 'Food Delivery', icon: ShoppingCart },
             { id: 'dining', label: 'Dining', icon: Utensils },
-            { id: 'grocery', label: 'Grocery', icon: ShoppingCart },
-            { id: 'travel', label: 'Travel', icon: Plane },
-            { id: 'utility', label: 'Utility', icon: CreditCard },
-          ].map((cat) => {
-            const Icon = cat.icon;
-            const isActive = filters.category === cat.id;
-            return (
-              <Button
-                key={cat.id}
-                variant={isActive ? "default" : "ghost"}
-                size="sm"
-                onClick={() => handleFilterChange('category', cat.id)}
-                className="w-full justify-start gap-2"
-              >
-                <Icon className="w-4 h-4" />
-                {cat.label}
-              </Button>
-            );
-          })}
+            { id: 'grocery', label: 'Grocery', icon: Coffee },
+            { id: 'travel', label: 'Travel', icon: Plane }
+          ].map((cat) => (
+            <label key={cat.id} className="flex items-center gap-3 cursor-pointer p-2 hover:bg-muted/30 rounded-lg transition-colors">
+              <input 
+                type="radio" 
+                name="category" 
+                className="accent-primary w-4 h-4"
+                checked={filters.category === cat.id}
+                onChange={() => handleFilterChange('category', cat.id)}
+              />
+              <cat.icon className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm flex-1">{cat.label}</span>
+            </label>
+          ))}
         </CollapsibleContent>
       </Collapsible>
 
@@ -530,9 +526,12 @@ const CardListing = () => {
       {/* Hero Search */}
       <section className="pt-28 pb-12 bg-gradient-hero">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl lg:text-5xl font-bold text-center mb-8">
-            Find Your Perfect Card - 100+ Options
+          <h1 className="text-4xl lg:text-5xl font-bold text-center mb-3">
+            Discover India's Best Credit Cards
           </h1>
+          <p className="text-center text-lg text-muted-foreground mb-8">
+            100+ Cards, Real Rewards, Plus Cashback
+          </p>
           
           <div className="max-w-2xl mx-auto space-y-6">
             <div className="flex gap-2">
@@ -664,6 +663,76 @@ const CardListing = () => {
 
             {/* Card Grid */}
             <div className="flex-1">
+              {/* Eligibility and Try Genius Buttons - Above Cards */}
+              <div className="mb-6 flex flex-wrap items-center gap-3">
+                <Collapsible open={eligibilityOpen} onOpenChange={setEligibilityOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button 
+                      size="lg" 
+                      variant={eligibilitySubmitted ? "default" : "outline"}
+                      className="gap-2 shadow-md hover:shadow-lg transition-all"
+                    >
+                      <CheckCircle2 className="w-5 h-5" />
+                      {eligibilitySubmitted ? "Eligibility Applied" : "Check Eligibility"}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-4 p-6 bg-card rounded-2xl shadow-lg border-2 border-primary/20">
+                    <h3 className="font-semibold text-lg mb-4">Enter Your Details</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Pincode</label>
+                        <Input
+                          type="text"
+                          placeholder="Enter 6-digit pincode"
+                          maxLength={6}
+                          value={eligibility.pincode}
+                          onChange={(e) => setEligibility(prev => ({ ...prev, pincode: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Monthly In-hand Income (₹)</label>
+                        <Input
+                          type="number"
+                          placeholder="e.g., 50000"
+                          value={eligibility.inhandIncome}
+                          onChange={(e) => setEligibility(prev => ({ ...prev, inhandIncome: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Employment Status</label>
+                        <Select
+                          value={eligibility.empStatus}
+                          onValueChange={(value) => setEligibility(prev => ({ ...prev, empStatus: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="salaried">Salaried</SelectItem>
+                            <SelectItem value="self-employed">Self-Employed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button onClick={handleEligibilitySubmit} className="w-full" size="lg">
+                        Apply Eligibility
+                      </Button>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Try Genius button - show when category is selected */}
+                {filters.category !== 'all' && (
+                  <Button 
+                    size="lg"
+                    onClick={() => setShowGeniusDialog(true)}
+                    className="gap-2 shadow-md hover:shadow-lg transition-all bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    Try Genius
+                  </Button>
+                )}
+              </div>
+
               {/* Mobile Filter Button */}
               <div className="lg:hidden mb-4 flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
