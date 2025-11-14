@@ -21,7 +21,7 @@ const Index = () => {
       <CategoryCardGenius />
       <CardGeniusCTA />
       <BeatMyCardCTA />
-      <MidPageCTA />
+      {/* <MidPageCTA /> */}
       <TestimonialSection />
       <BlogSection />
       <FinalCTA />
