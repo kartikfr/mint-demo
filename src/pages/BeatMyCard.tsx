@@ -7,6 +7,7 @@ import { cardService, SpendingData } from "@/services/cardService";
 import { toast } from "sonner";
 import { CardSearchDropdown } from "@/components/CardSearchDropdown";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { openRedirectInterstitial } from "@/utils/redirectHandler";
 
 interface CategorySavings {
   category: string;
@@ -956,6 +957,9 @@ const BeatMyCard = () => {
                   setCurrentStep(0);
                   setResponses({});
                   setSelectedCard(null);
+                  setUserCardData(null);
+                  setGeniusCardData(null);
+                  setCategorySavings([]);
                 }}
                 className="text-lg px-8"
               >
@@ -964,7 +968,15 @@ const BeatMyCard = () => {
               {!isUserWinner && (
                 <Button
                   size="lg"
-                  onClick={() => navigate(`/card/${geniusCardData.seo_card_alias}`)}
+                  onClick={() => {
+                    const bankName = geniusCardData.banks?.name || geniusCardData.name.split(' ')[0];
+                    openRedirectInterstitial({
+                      bankName: bankName,
+                      cardName: geniusCardData.name,
+                      cardId: geniusCardData.id,
+                      bankLogo: geniusCardData.image
+                    });
+                  }}
                   className="text-lg px-8 bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70"
                 >
                   Apply for Better Card
