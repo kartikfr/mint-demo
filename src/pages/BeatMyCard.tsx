@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, Trophy, TrendingUp, Award } from "lucide-react";
+import { SpendingInput } from "@/components/ui/spending-input";
+import { ArrowLeft, ArrowRight, Loader2, Trophy, TrendingUp, Award, Sparkles } from "lucide-react";
 import { cardService, SpendingData } from "@/services/cardService";
 import { toast } from "sonner";
-import { SpendingInput } from "@/components/ui/spending-input";
 import { CardSearchDropdown } from "@/components/CardSearchDropdown";
 
 interface Card {
@@ -19,7 +19,7 @@ interface Card {
 }
 
 interface SpendingQuestion {
-  key: keyof SpendingData;
+  field: keyof SpendingData;
   question: string;
   emoji: string;
   min: number;
@@ -28,25 +28,25 @@ interface SpendingQuestion {
 }
 
 const questions: SpendingQuestion[] = [
-  { key: "amazon_spends", question: "How much do you spend on Amazon monthly?", emoji: "📦", min: 0, max: 50000, step: 500 },
-  { key: "flipkart_spends", question: "How much do you spend on Flipkart monthly?", emoji: "🛒", min: 0, max: 50000, step: 500 },
-  { key: "other_online_spends", question: "Other online shopping spends?", emoji: "💻", min: 0, max: 50000, step: 500 },
-  { key: "other_offline_spends", question: "Offline shopping spends?", emoji: "🏪", min: 0, max: 50000, step: 500 },
-  { key: "grocery_spends_online", question: "Online grocery spends?", emoji: "🥬", min: 0, max: 30000, step: 500 },
-  { key: "online_food_ordering", question: "Food delivery spends?", emoji: "🍕", min: 0, max: 20000, step: 500 },
-  { key: "fuel", question: "Monthly fuel expenses?", emoji: "⛽", min: 0, max: 20000, step: 500 },
-  { key: "dining_or_going_out", question: "Dining out expenses?", emoji: "🍽️", min: 0, max: 30000, step: 500 },
-  { key: "flights_annual", question: "Annual flight bookings?", emoji: "✈️", min: 0, max: 200000, step: 5000 },
-  { key: "hotels_annual", question: "Annual hotel bookings?", emoji: "🏨", min: 0, max: 200000, step: 5000 },
-  { key: "domestic_lounge_usage_quarterly", question: "Domestic lounge visits per quarter?", emoji: "🛋️", min: 0, max: 20, step: 1 },
-  { key: "international_lounge_usage_quarterly", question: "International lounge visits per quarter?", emoji: "🌍", min: 0, max: 20, step: 1 },
-  { key: "mobile_phone_bills", question: "Monthly mobile bills?", emoji: "📱", min: 0, max: 5000, step: 100 },
-  { key: "electricity_bills", question: "Monthly electricity bills?", emoji: "💡", min: 0, max: 10000, step: 100 },
-  { key: "water_bills", question: "Monthly water bills?", emoji: "💧", min: 0, max: 3000, step: 100 },
-  { key: "insurance_health_annual", question: "Annual health insurance premium?", emoji: "🏥", min: 0, max: 100000, step: 1000 },
-  { key: "insurance_car_or_bike_annual", question: "Annual vehicle insurance?", emoji: "🚗", min: 0, max: 50000, step: 1000 },
-  { key: "rent", question: "Monthly rent payment?", emoji: "🏠", min: 0, max: 100000, step: 1000 },
-  { key: "school_fees", question: "Monthly school fees?", emoji: "🎓", min: 0, max: 50000, step: 1000 },
+  { field: 'amazon_spends', question: 'How much do you spend on Amazon in a month?', emoji: '🛍️', min: 0, max: 100000, step: 500 },
+  { field: 'flipkart_spends', question: 'How much do you spend on Flipkart in a month?', emoji: '📦', min: 0, max: 100000, step: 500 },
+  { field: 'other_online_spends', question: 'How much do you spend on other online shopping?', emoji: '💸', min: 0, max: 50000, step: 500 },
+  { field: 'other_offline_spends', question: 'How much do you spend at local shops or offline stores monthly?', emoji: '🏪', min: 0, max: 100000, step: 1000 },
+  { field: 'grocery_spends_online', question: 'How much do you spend on groceries (Blinkit, Zepto etc.) every month?', emoji: '🥦', min: 0, max: 50000, step: 500 },
+  { field: 'online_food_ordering', question: 'How much do you spend on food delivery apps in a month?', emoji: '🛵🍜', min: 0, max: 30000, step: 500 },
+  { field: 'fuel', question: 'How much do you spend on fuel in a month?', emoji: '⛽', min: 0, max: 20000, step: 500 },
+  { field: 'dining_or_going_out', question: 'How much do you spend on dining out in a month?', emoji: '🥗', min: 0, max: 30000, step: 500 },
+  { field: 'flights_annual', question: 'How much do you spend on flights in a year?', emoji: '✈️', min: 0, max: 500000, step: 5000 },
+  { field: 'hotels_annual', question: 'How much do you spend on hotel stays in a year?', emoji: '🛌', min: 0, max: 300000, step: 5000 },
+  { field: 'domestic_lounge_usage_quarterly', question: 'How often do you visit domestic airport lounges in a year?', emoji: '🇮🇳', min: 0, max: 50, step: 1 },
+  { field: 'international_lounge_usage_quarterly', question: 'Plus, what about international airport lounges?', emoji: '🌎', min: 0, max: 50, step: 1 },
+  { field: 'mobile_phone_bills', question: 'How much do you spend on recharging your mobile or Wi-Fi monthly?', emoji: '📱', min: 0, max: 10000, step: 100 },
+  { field: 'electricity_bills', question: "What's your average monthly electricity bill?", emoji: '⚡️', min: 0, max: 20000, step: 500 },
+  { field: 'water_bills', question: 'And what about your monthly water bill?', emoji: '💧', min: 0, max: 5000, step: 100 },
+  { field: 'insurance_health_annual', question: 'How much do you pay for health or term insurance annually?', emoji: '🛡️', min: 0, max: 100000, step: 1000 },
+  { field: 'insurance_car_or_bike_annual', question: 'How much do you pay for car or bike insurance annually?', emoji: '🚗', min: 0, max: 50000, step: 1000 },
+  { field: 'rent', question: 'How much do you pay for house rent every month?', emoji: '🏠', min: 0, max: 100000, step: 1000 },
+  { field: 'school_fees', question: 'How much do you pay in school fees monthly?', emoji: '🎓', min: 0, max: 50000, step: 1000 },
 ];
 
 const BeatMyCard = () => {
@@ -56,7 +56,7 @@ const BeatMyCard = () => {
   const [filteredCards, setFilteredCards] = useState<Card[]>([]);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<SpendingData>({});
   const [isCalculating, setIsCalculating] = useState(false);
   const [userCardData, setUserCardData] = useState<Card | null>(null);
@@ -94,37 +94,57 @@ const BeatMyCard = () => {
   };
 
   const handleNext = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
+    if (currentStep < questions.length - 1) {
+      setCurrentStep(currentStep + 1);
     } else {
       calculateResults();
     }
   };
 
   const handlePrev = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
+  const handleSkip = () => {
+    // Skip current question (leave value as 0 or undefined)
+    handleNext();
+  };
+
+  const handleSkipAll = () => {
+    // Skip all remaining questions and calculate
+    calculateResults();
+  };
+
   const calculateResults = async () => {
+    if (!selectedCard) {
+      toast.error("No card selected");
+      return;
+    }
+
     setIsCalculating(true);
     try {
       const calculateResponse = await cardService.calculateCardGenius(responses);
       
-      if (calculateResponse.status === "success" && calculateResponse.data) {
+      if (calculateResponse.status === "success" && calculateResponse.data && calculateResponse.data.length > 0) {
         const topCard = calculateResponse.data[0];
+        
+        // Find the user's selected card in the results
+        const userCardInResults = calculateResponse.data.find(
+          (card: any) => card.seo_card_alias === selectedCard.seo_card_alias
+        );
         
         // Fetch detailed data for both cards
         const [userCard, geniusCard] = await Promise.all([
-          cardService.getCardDetailsByAlias(selectedCard!.seo_card_alias),
+          cardService.getCardDetailsByAlias(selectedCard.seo_card_alias),
           cardService.getCardDetailsByAlias(topCard.seo_card_alias)
         ]);
 
         if (userCard.status === "success" && userCard.data?.[0]) {
           setUserCardData({
             ...userCard.data[0],
-            annual_saving: topCard.user_card_saving || 0
+            annual_saving: userCardInResults?.annual_saving || 0
           });
         }
 
@@ -136,6 +156,8 @@ const BeatMyCard = () => {
         }
 
         setStep('results');
+      } else {
+        toast.error("No results found. Please try again.");
       }
     } catch (error) {
       toast.error("Failed to calculate results");
@@ -187,12 +209,12 @@ const BeatMyCard = () => {
 
   // Render questionnaire
   if (step === 'questions') {
-    const question = questions[currentQuestion];
-    const progress = ((currentQuestion + 1) / questions.length) * 100;
+    const question = questions[currentStep];
+    const progress = ((currentStep + 1) / questions.length) * 100;
 
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-2xl">
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
           <Button
             variant="ghost"
             onClick={() => setStep('select')}
@@ -202,11 +224,12 @@ const BeatMyCard = () => {
             Back to Card Selection
           </Button>
 
-          <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
-            <div className="mb-6">
+          <div className="max-w-2xl mx-auto">
+            {/* Progress bar */}
+            <div className="mb-8">
               <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                <span>Question {currentQuestion + 1} of {questions.length}</span>
-                <span>{Math.round(progress)}%</span>
+                <span>Question {currentStep + 1} of {questions.length}</span>
+                <span>{Math.round(progress)}% Complete</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div 
@@ -216,41 +239,73 @@ const BeatMyCard = () => {
               </div>
             </div>
 
-            <SpendingInput
-              question={question.question}
-              emoji={question.emoji}
-              value={responses[question.key] || 0}
-              onChange={(value) => setResponses({ ...responses, [question.key]: value })}
-              min={question.min}
-              max={question.max}
-              step={question.step}
-            />
+            {/* Question card */}
+            <div className="bg-card border border-border rounded-2xl p-8 shadow-lg mb-6">
+              <SpendingInput
+                question={question.question}
+                emoji={question.emoji}
+                value={responses[question.field] || 0}
+                onChange={(value) => setResponses({ ...responses, [question.field]: value })}
+                min={question.min}
+                max={question.max}
+                step={question.step}
+              />
+            </div>
 
-            <div className="flex gap-3 mt-8">
-              <Button
-                variant="outline"
-                onClick={handlePrev}
-                disabled={currentQuestion === 0}
-                className="flex-1"
-              >
-                Previous
-              </Button>
-              <Button
-                onClick={handleNext}
-                disabled={isCalculating}
-                className="flex-1"
-              >
-                {isCalculating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Calculating...
-                  </>
-                ) : currentQuestion === questions.length - 1 ? (
-                  "See Results"
-                ) : (
-                  "Next"
-                )}
-              </Button>
+            {/* Navigation buttons */}
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handlePrev}
+                  disabled={currentStep === 0}
+                  className="flex-1"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Previous
+                </Button>
+                <Button
+                  onClick={handleNext}
+                  disabled={isCalculating}
+                  className="flex-1"
+                >
+                  {isCalculating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Calculating...
+                    </>
+                  ) : currentStep === questions.length - 1 ? (
+                    <>
+                      See Results
+                      <Sparkles className="ml-2 h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      Next
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Skip buttons */}
+              <div className="flex gap-3">
+                <Button
+                  variant="ghost"
+                  onClick={handleSkip}
+                  className="flex-1 text-muted-foreground"
+                >
+                  Skip Question
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={handleSkipAll}
+                  disabled={isCalculating}
+                  className="flex-1 text-muted-foreground"
+                >
+                  {isCalculating ? "Calculating..." : "Skip All & See Results"}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -294,8 +349,8 @@ const BeatMyCard = () => {
                   <p className="text-2xl font-semibold text-primary mb-2">
                     You Win! 🎉
                   </p>
-                  <p className="text-lg text-muted-foreground">
-                    Great choice! Your {userCardData.name} is already optimized for your spending pattern.
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                    Excellent choice! Your <strong>{userCardData.name}</strong> is already optimized for your spending pattern.
                     <br />
                     You're making the most of your rewards!
                   </p>
@@ -303,10 +358,12 @@ const BeatMyCard = () => {
               ) : (
                 <div>
                   <p className="text-2xl font-semibold text-secondary mb-2">
-                    {geniusCardData.name}
+                    Card Genius Wins! 🏆
                   </p>
-                  <p className="text-lg text-muted-foreground">
-                    beats your {userCardData.name}!
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                    <strong>{geniusCardData.name}</strong> beats your {userCardData.name}!
+                    <br />
+                    You could save ₹{(geniusCardData.annual_saving - userCardData.annual_saving).toLocaleString('en-IN')} more per year.
                   </p>
                 </div>
               )}
@@ -333,9 +390,9 @@ const BeatMyCard = () => {
                 <p className="text-muted-foreground mb-4">{userCardData.banks?.name || 'Credit Card'}</p>
                 
                 <div className="bg-muted/50 rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground mb-1">You Save Annually</p>
+                  <p className="text-sm text-muted-foreground mb-1">Annual Savings</p>
                   <p className="text-3xl font-bold text-primary">
-                    ₹{userCardData.annual_saving?.toLocaleString('en-IN')}
+                    ₹{userCardData.annual_saving?.toLocaleString('en-IN') || '0'}
                   </p>
                 </div>
               </div>
@@ -359,9 +416,9 @@ const BeatMyCard = () => {
                 <p className="text-muted-foreground mb-4">{geniusCardData.banks?.name || 'Credit Card'}</p>
                 
                 <div className="bg-muted/50 rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground mb-1">You Save Annually</p>
+                  <p className="text-sm text-muted-foreground mb-1">Annual Savings</p>
                   <p className="text-3xl font-bold text-secondary">
-                    ₹{geniusCardData.annual_saving?.toLocaleString('en-IN')}
+                    ₹{geniusCardData.annual_saving?.toLocaleString('en-IN') || '0'}
                   </p>
                 </div>
               </div>
@@ -374,8 +431,9 @@ const BeatMyCard = () => {
                 size="lg"
                 onClick={() => {
                   setStep('select');
-                  setCurrentQuestion(0);
+                  setCurrentStep(0);
                   setResponses({});
+                  setSelectedCard(null);
                 }}
               >
                 Try Another Card
