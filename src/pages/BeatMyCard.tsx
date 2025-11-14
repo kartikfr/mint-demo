@@ -66,16 +66,6 @@ const BeatMyCard = () => {
     fetchCards();
   }, []);
 
-  useEffect(() => {
-    if (Array.isArray(cards)) {
-      const filtered = cards.filter(card =>
-        card.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        card.banks.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredCards(filtered);
-    }
-  }, [searchQuery, cards]);
-
   const fetchCards = async () => {
     setIsLoading(true);
     try {
