@@ -97,15 +97,6 @@ const PopularCreditCards = () => {
 
           {Object.entries(categories).map(([key, category]) => (
             <TabsContent key={key} value={key} className="mt-0">
-              <div className="mb-8 flex justify-center">
-                <Button
-                  size="lg"
-                  onClick={() => navigate(`/cards?category=${category.filterValue}`)}
-                  className="min-w-[200px]"
-                >
-                  View All Cards
-                </Button>
-              </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {cards[key]?.map((card: any, index: number) => {
                   const topUsps = card.product_usps
@@ -216,6 +207,17 @@ const PopularCreditCards = () => {
                     </div>
                   );
                 })}
+              </div>
+              
+              {/* View All Cards Button */}
+              <div className="mt-12 flex justify-center">
+                <Button
+                  size="lg"
+                  onClick={() => navigate(`/cards?category=${category.filterValue}`)}
+                  className="min-w-[200px]"
+                >
+                  View All Cards
+                </Button>
               </div>
             </TabsContent>
           ))}

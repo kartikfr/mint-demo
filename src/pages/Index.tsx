@@ -4,6 +4,7 @@ import HeroSection from "@/components/HeroSection";
 import BankCarousel from "@/components/BankCarousel";
 import PopularCreditCards from "@/components/PopularCreditCards";
 import CategoryCardGenius from "@/components/CategoryCardGenius";
+import CardGeniusCTA from "@/components/CardGeniusCTA";
 import MidPageCTA from "@/components/MidPageCTA";
 import TestimonialSection from "@/components/TestimonialSection";
 import BlogSection from "@/components/BlogSection";
@@ -17,6 +18,7 @@ const Index = () => {
       <BankCarousel />
       <PopularCreditCards />
       <CategoryCardGenius />
+      <CardGeniusCTA />
       <MidPageCTA />
       <TestimonialSection />
       <BlogSection />

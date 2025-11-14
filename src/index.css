@@ -172,4 +172,27 @@ All colors MUST be HSL.
     justify-content: center;
     align-items: center;
   }
+
+  /* Grid pattern for backgrounds */
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, hsl(var(--muted)) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--muted)) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Gradient animation */
+  @keyframes gradient {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 4s ease infinite;
+  }
 }
