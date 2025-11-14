@@ -2,10 +2,18 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SpendingInput } from "@/components/ui/spending-input";
-import { ArrowLeft, ArrowRight, Loader2, Trophy, TrendingUp, Award, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Trophy, TrendingUp, Award, Sparkles, ChevronDown } from "lucide-react";
 import { cardService, SpendingData } from "@/services/cardService";
 import { toast } from "sonner";
 import { CardSearchDropdown } from "@/components/CardSearchDropdown";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
+interface CategorySavings {
+  category: string;
+  emoji: string;
+  userSaving: number;
+  geniusSaving: number;
+}
 
 interface Card {
   id: number;
@@ -19,6 +27,10 @@ interface Card {
   total_savings_yearly?: number;
   joining_fees?: string;
   card_type?: string;
+  annual_fee?: string;
+  reward_rate?: string;
+  welcome_bonus?: string;
+  key_benefits?: string[];
 }
 
 interface SpendingQuestion {
@@ -64,6 +76,7 @@ const BeatMyCard = () => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [userCardData, setUserCardData] = useState<Card | null>(null);
   const [geniusCardData, setGeniusCardData] = useState<Card | null>(null);
+  const [categorySavings, setCategorySavings] = useState<CategorySavings[]>([]);
 
   useEffect(() => {
     fetchCards();
@@ -252,6 +265,10 @@ const BeatMyCard = () => {
           console.log("=== Setting User Card Data ===", userCardData);
           console.log("=== Setting Genius Card Data ===", geniusCardData);
           
+          // Calculate category-wise savings
+          const categoryBreakdown = calculateCategorySavings(responses, userCardData, geniusCardData);
+          setCategorySavings(categoryBreakdown);
+          
           setUserCardData(userCardData);
           setGeniusCardData(geniusCardData);
           
@@ -272,6 +289,58 @@ const BeatMyCard = () => {
     } finally {
       setIsCalculating(false);
     }
+  };
+
+  const calculateCategorySavings = (spending: SpendingData, userCard: Card, geniusCard: Card): CategorySavings[] => {
+    const categories: CategorySavings[] = [];
+    
+    // Map of spending categories to display names and emojis
+    const categoryMap: { [key: string]: { name: string; emoji: string; isAnnual?: boolean } } = {
+      amazon_spends: { name: 'Amazon Shopping', emoji: '🛍️' },
+      flipkart_spends: { name: 'Flipkart Shopping', emoji: '📦' },
+      other_online_spends: { name: 'Online Shopping', emoji: '💸' },
+      other_offline_spends: { name: 'Offline Shopping', emoji: '🏪' },
+      grocery_spends_online: { name: 'Groceries', emoji: '🥦' },
+      online_food_ordering: { name: 'Food Delivery', emoji: '🛵' },
+      fuel: { name: 'Fuel', emoji: '⛽' },
+      dining_or_going_out: { name: 'Dining Out', emoji: '🥗' },
+      flights_annual: { name: 'Flight Bookings', emoji: '✈️', isAnnual: true },
+      hotels_annual: { name: 'Hotel Stays', emoji: '🛌', isAnnual: true },
+      mobile_phone_bills: { name: 'Mobile & WiFi', emoji: '📱' },
+      electricity_bills: { name: 'Electricity', emoji: '⚡' },
+      water_bills: { name: 'Water', emoji: '💧' },
+      insurance_health_annual: { name: 'Health Insurance', emoji: '🛡️', isAnnual: true },
+      insurance_car_or_bike_annual: { name: 'Vehicle Insurance', emoji: '🚗', isAnnual: true },
+      rent: { name: 'House Rent', emoji: '🏠' },
+      school_fees: { name: 'School Fees', emoji: '🎓' },
+    };
+
+    // Generic reward rates (these would ideally come from the API)
+    // Using simplified calculation: assume average reward rate difference
+    const avgUserRate = 0.01; // 1% for user card
+    const avgGeniusRate = 0.02; // 2% for genius card (better)
+    
+    Object.entries(spending).forEach(([key, value]) => {
+      if (value && value > 0 && categoryMap[key]) {
+        const categoryInfo = categoryMap[key];
+        const annualSpend = categoryInfo.isAnnual ? value : value * 12;
+        
+        // Calculate estimated savings for each category
+        const userCategorySaving = Math.round(annualSpend * avgUserRate);
+        const geniusCategorySaving = Math.round(annualSpend * avgGeniusRate);
+        
+        if (userCategorySaving > 0 || geniusCategorySaving > 0) {
+          categories.push({
+            category: categoryInfo.name,
+            emoji: categoryInfo.emoji,
+            userSaving: userCategorySaving,
+            geniusSaving: geniusCategorySaving,
+          });
+        }
+      }
+    });
+
+    return categories.sort((a, b) => b.geniusSaving - a.geniusSaving);
   };
 
   const isUserWinner = userCardData && geniusCardData && 
@@ -553,6 +622,10 @@ const BeatMyCard = () => {
                       src={userCardData.image}
                       alt={userCardData.name}
                       className="w-full h-52 object-contain drop-shadow-2xl"
+                      onError={(e) => {
+                        console.error("Failed to load user card image:", userCardData.image);
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
                     />
                   </div>
                   
@@ -578,11 +651,26 @@ const BeatMyCard = () => {
                     </p>
                   </div>
                   
-                  {userCardData.joining_fees && (
-                    <div className="text-center text-sm text-muted-foreground">
-                      <span className="font-medium">Joining Fee:</span> ₹{userCardData.joining_fees}
-                    </div>
-                  )}
+                  <div className="space-y-2 text-sm">
+                    {userCardData.joining_fees && (
+                      <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Joining Fee</span>
+                        <span className="font-bold text-foreground">₹{userCardData.joining_fees}</span>
+                      </div>
+                    )}
+                    {userCardData.annual_fee && (
+                      <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Annual Fee</span>
+                        <span className="font-bold text-foreground">₹{userCardData.annual_fee}</span>
+                      </div>
+                    )}
+                    {userCardData.welcome_bonus && (
+                      <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Welcome Bonus</span>
+                        <span className="font-bold text-foreground">{userCardData.welcome_bonus}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -601,11 +689,15 @@ const BeatMyCard = () => {
                 )}
                 
                 <div className={`p-6 ${!isUserWinner ? 'pt-16' : ''}`}>
-                  <div className="bg-gradient-to-br from-muted/50 to-muted rounded-2xl p-6 mb-4">
+                  <div className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl p-6 mb-4">
                     <img
                       src={geniusCardData.image}
                       alt={geniusCardData.name}
                       className="w-full h-52 object-contain drop-shadow-2xl"
+                      onError={(e) => {
+                        console.error("Failed to load genius card image:", geniusCardData.image);
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
                     />
                   </div>
                   
@@ -613,7 +705,7 @@ const BeatMyCard = () => {
                     <h3 className="text-2xl font-bold mb-2 text-foreground">{geniusCardData.name}</h3>
                     <p className="text-muted-foreground font-medium">{geniusCardData.banks?.name || 'Credit Card'}</p>
                     {geniusCardData.card_type && (
-                      <span className="inline-block mt-2 px-3 py-1 bg-muted rounded-full text-xs font-semibold uppercase text-muted-foreground">
+                      <span className="inline-block mt-2 px-3 py-1 bg-secondary/10 rounded-full text-xs font-semibold uppercase text-secondary">
                         {geniusCardData.card_type}
                       </span>
                     )}
@@ -631,11 +723,26 @@ const BeatMyCard = () => {
                     </p>
                   </div>
                   
-                  {geniusCardData.joining_fees && (
-                    <div className="text-center text-sm text-muted-foreground">
-                      <span className="font-medium">Joining Fee:</span> ₹{geniusCardData.joining_fees}
-                    </div>
-                  )}
+                  <div className="space-y-2 text-sm">
+                    {geniusCardData.joining_fees && (
+                      <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Joining Fee</span>
+                        <span className="font-bold text-foreground">₹{geniusCardData.joining_fees}</span>
+                      </div>
+                    )}
+                    {geniusCardData.annual_fee && (
+                      <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Annual Fee</span>
+                        <span className="font-bold text-foreground">₹{geniusCardData.annual_fee}</span>
+                      </div>
+                    )}
+                    {geniusCardData.welcome_bonus && (
+                      <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Welcome Bonus</span>
+                        <span className="font-bold text-secondary">{geniusCardData.welcome_bonus}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -691,6 +798,111 @@ const BeatMyCard = () => {
                 </div>
               </div>
             </div>
+
+            {/* Category-wise Savings Breakdown */}
+            {categorySavings.length > 0 && (
+              <div className="mb-12 max-w-4xl mx-auto animate-fade-in">
+                <Accordion type="single" collapsible className="bg-card border border-border rounded-2xl overflow-hidden">
+                  <AccordionItem value="breakdown" className="border-none">
+                    <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary/10">
+                          <TrendingUp className="w-5 h-5 text-secondary" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-lg font-bold text-foreground">Category-wise Savings Breakdown</h3>
+                          <p className="text-sm text-muted-foreground">See how you earn rewards across different spending categories</p>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-6">
+                      <div className="space-y-4 pt-4">
+                        {categorySavings.map((category, index) => {
+                          const difference = category.geniusSaving - category.userSaving;
+                          const percentDiff = category.userSaving > 0 
+                            ? ((difference / category.userSaving) * 100).toFixed(0) 
+                            : '100';
+                          
+                          return (
+                            <div key={index} className="bg-muted/30 rounded-xl p-4 hover:bg-muted/50 transition-colors">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-2xl">{category.emoji}</span>
+                                  <span className="font-semibold text-foreground">{category.category}</span>
+                                </div>
+                                {difference > 0 && (
+                                  <span className="text-xs font-bold text-secondary bg-secondary/10 px-3 py-1 rounded-full">
+                                    +₹{difference.toLocaleString('en-IN')} more
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Your Card</p>
+                                  <div className="flex items-baseline gap-2">
+                                    <p className="text-xl font-bold text-foreground">₹{category.userSaving.toLocaleString('en-IN')}</p>
+                                    <p className="text-xs text-muted-foreground">/ year</p>
+                                  </div>
+                                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-gradient-to-r from-primary/60 to-primary transition-all duration-500"
+                                      style={{ 
+                                        width: category.geniusSaving > 0 
+                                          ? `${(category.userSaving / category.geniusSaving) * 100}%` 
+                                          : '100%' 
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Card Genius</p>
+                                  <div className="flex items-baseline gap-2">
+                                    <p className="text-xl font-bold text-secondary">₹{category.geniusSaving.toLocaleString('en-IN')}</p>
+                                    <p className="text-xs text-muted-foreground">/ year</p>
+                                  </div>
+                                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-gradient-to-r from-secondary to-secondary/70 transition-all duration-500"
+                                      style={{ width: '100%' }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        <div className="bg-gradient-to-r from-secondary/10 to-primary/10 rounded-xl p-5 border-2 border-secondary/20 mt-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-secondary/20">
+                                <Trophy className="w-6 h-6 text-secondary" />
+                              </div>
+                              <div>
+                                <p className="text-sm text-muted-foreground uppercase tracking-wide mb-1">Total Annual Savings</p>
+                                <div className="flex items-center gap-4">
+                                  <div>
+                                    <span className="text-xs text-muted-foreground">Your Card: </span>
+                                    <span className="text-lg font-bold text-foreground">₹{userCardData?.annual_saving?.toLocaleString('en-IN')}</span>
+                                  </div>
+                                  <ArrowRight className="w-4 h-4 text-secondary" />
+                                  <div>
+                                    <span className="text-xs text-muted-foreground">Card Genius: </span>
+                                    <span className="text-2xl font-bold text-secondary">₹{geniusCardData?.annual_saving?.toLocaleString('en-IN')}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+            )}
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
