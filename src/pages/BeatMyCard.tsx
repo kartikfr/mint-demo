@@ -234,41 +234,44 @@ const BeatMyCard = () => {
           console.log("=== User Card Details Response ===", userCard);
           console.log("=== Genius Card Details Response ===", geniusCard);
 
-          // User's card data
+          // User's card data - prioritize image from API response
           if (userCard?.status === "success" && userCard.data?.[0]) {
             userCardData = {
               ...userCard.data[0],
+              image: userCardInResults.image || userCard.data[0].image, // Use API image first
               annual_saving: userCardInResults.total_savings || 0,
               total_savings_yearly: userCardInResults.total_savings_yearly || 0,
               spending_breakdown_array: userCardInResults.spending_breakdown_array || []
             };
           } else {
-            // Fallback to selected card data with API savings
+            // Fallback to selected card data with API savings and image
             userCardData = {
               ...selectedCard,
+              image: userCardInResults.image || selectedCard.image, // Use API image first
+              name: userCardInResults.card_name || selectedCard.name,
               annual_saving: userCardInResults.total_savings || 0,
               total_savings_yearly: userCardInResults.total_savings_yearly || 0,
-              spending_breakdown_array: userCardInResults.spending_breakdown_array || [],
-              name: userCardInResults.card_name || selectedCard.name
+              spending_breakdown_array: userCardInResults.spending_breakdown_array || []
             };
             console.log("Using fallback user card data");
           }
 
-          // Genius card data
+          // Genius card data - prioritize image from API response
           if (geniusCard?.status === "success" && geniusCard.data?.[0]) {
             geniusCardData = {
-              ...geniusCard.data[0], 
+              ...geniusCard.data[0],
+              image: topCard.image || geniusCard.data[0].image, // Use API image first
               annual_saving: topCard.total_savings || 0,
               total_savings_yearly: topCard.total_savings_yearly || 0,
               spending_breakdown_array: topCard.spending_breakdown_array || []
             };
           } else {
-            // Fallback: Create card data from API response
+            // Fallback: Create card data from API response with API image
             geniusCardData = {
               id: topCard.id,
               name: topCard.card_name,
               seo_card_alias: topCard.seo_card_alias,
-              image: cards.find(c => c.seo_card_alias === topCard.seo_card_alias)?.image || selectedCard.image,
+              image: topCard.image || '', // Use API image directly
               annual_saving: topCard.total_savings || 0,
               total_savings_yearly: topCard.total_savings_yearly || 0,
               spending_breakdown_array: topCard.spending_breakdown_array || [],
