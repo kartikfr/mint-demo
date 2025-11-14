@@ -150,13 +150,30 @@ const BeatMyCard = () => {
 
       const calculateResponse = await cardService.calculateCardGenius(completePayload);
       
+      console.log("Card Genius API Response:", calculateResponse);
+      
       if (calculateResponse.status === "success" && calculateResponse.data && calculateResponse.data.length > 0) {
-        const topCard = calculateResponse.data[0];
+        // Sort by annual_saving to get the top card
+        const sortedCards = [...calculateResponse.data].sort((a: any, b: any) => {
+          const aSaving = a.annual_saving || a['Total Net Saving'] || 0;
+          const bSaving = b.annual_saving || b['Total Net Saving'] || 0;
+          return bSaving - aSaving;
+        });
         
-        // Find the user's selected card in the results
+        const topCard = sortedCards[0];
+        console.log("Top Card:", topCard);
+        
+        // Find the user's selected card in the results by matching seo_card_alias
         const userCardInResults = calculateResponse.data.find(
           (card: any) => card.seo_card_alias === selectedCard.seo_card_alias
         );
+        
+        console.log("User's Selected Card in Results:", userCardInResults);
+        
+        if (!userCardInResults) {
+          toast.error("Your selected card was not found in the results");
+          return;
+        }
         
         // Fetch detailed data for both cards
         const [userCard, geniusCard] = await Promise.all([
@@ -164,17 +181,21 @@ const BeatMyCard = () => {
           cardService.getCardDetailsByAlias(topCard.seo_card_alias)
         ]);
 
+        // Extract annual_saving from API response (handle different field names)
+        const getUserSaving = (card: any) => 
+          card?.annual_saving || card?.['Total Net Saving'] || 0;
+
         if (userCard.status === "success" && userCard.data?.[0]) {
           setUserCardData({
             ...userCard.data[0],
-            annual_saving: userCardInResults?.annual_saving || 0
+            annual_saving: getUserSaving(userCardInResults)
           });
         }
 
         if (geniusCard.status === "success" && geniusCard.data?.[0]) {
           setGeniusCardData({
             ...geniusCard.data[0], 
-            annual_saving: topCard.annual_saving || 0
+            annual_saving: getUserSaving(topCard)
           });
         }
 
@@ -184,7 +205,7 @@ const BeatMyCard = () => {
       }
     } catch (error) {
       toast.error("Failed to calculate results");
-      console.error(error);
+      console.error("Calculate Results Error:", error);
     } finally {
       setIsCalculating(false);
     }
