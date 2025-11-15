@@ -29,6 +29,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ChevronDown } from "lucide-react";
 import confetti from 'canvas-confetti';
 import { toast } from "sonner";
@@ -587,8 +592,8 @@ const CardListing = () => {
             <div className="flex-1">
               {/* Eligibility and Try Genius Buttons - Above Cards */}
               <div className="mb-6 flex flex-wrap items-center gap-3">
-                <Collapsible open={eligibilityOpen} onOpenChange={setEligibilityOpen}>
-                  <CollapsibleTrigger asChild>
+                <Popover open={eligibilityOpen} onOpenChange={setEligibilityOpen}>
+                  <PopoverTrigger asChild>
                     <Button 
                       size="lg" 
                       variant={eligibilitySubmitted ? "default" : "outline"}
@@ -597,8 +602,12 @@ const CardListing = () => {
                       <CheckCircle2 className="w-5 h-5" />
                       {eligibilitySubmitted ? "Eligibility Applied" : "Check Eligibility"}
                     </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-4 p-6 bg-card rounded-2xl shadow-lg border-2 border-primary/20">
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-80 p-6 bg-card rounded-xl shadow-2xl border-2 border-primary/20 z-50" 
+                    align="start"
+                    sideOffset={8}
+                  >
                     <h3 className="font-semibold text-lg mb-4">Enter Your Details</h3>
                     <div className="space-y-4">
                       <div>
@@ -639,8 +648,8 @@ const CardListing = () => {
                         Apply Eligibility
                       </Button>
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                  </PopoverContent>
+                </Popover>
 
                 {/* Try Genius button - show when category is selected */}
                 {filters.category !== 'all' && (
