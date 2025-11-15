@@ -347,65 +347,82 @@ export function ComparePanel({ open, onOpenChange, preSelectedCard }: ComparePan
           <div className="p-6">
             {/* Card Slots with Search */}
             <div className="grid gap-6 mb-8" style={{ gridTemplateColumns: `repeat(${maxCompare}, 1fr)` }}>
-              {slots.map((card, slotIndex) => (
-                <div 
-                  key={slotIndex}
-                  className="bg-card border-2 border-border rounded-xl p-4 relative min-h-[300px]"
-                >
-                  {card ? (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeCard(card.id?.toString() || card.seo_card_alias)}
-                        className="absolute top-2 right-2 w-6 h-6 p-0 hover:bg-destructive/10 hover:text-destructive z-10"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
+              {slots.map((card, slotIndex) => {
+                // Check if this is the preSelected card (locked in first position)
+                const isPreSelected = preSelectedCard && slotIndex === 0 && card && 
+                  ((card.seo_card_alias || card.id?.toString()) === (preSelectedCard.seo_card_alias || preSelectedCard.id?.toString()));
+                
+                return (
+                  <div 
+                    key={slotIndex}
+                    className="bg-card border-2 border-border rounded-xl p-4 relative min-h-[300px]"
+                  >
+                    {card ? (
+                      <>
+                        {/* Show remove button only if not the pre-selected card */}
+                        {!isPreSelected && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeCard(card.id?.toString() || card.seo_card_alias)}
+                            className="absolute top-2 right-2 w-6 h-6 p-0 hover:bg-destructive/10 hover:text-destructive z-10"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                        
+                        {/* Show locked badge for pre-selected card */}
+                        {isPreSelected && (
+                          <div className="absolute top-2 right-2 z-10">
+                            <Badge variant="secondary" className="text-xs font-semibold">
+                              Reference Card
+                            </Badge>
+                          </div>
+                        )}
 
-                      <div className="mb-3 h-32 flex items-center justify-center bg-muted/30 rounded-lg">
-                        <img 
-                          src={card.card_bg_image || card.image || '/placeholder.svg'}
-                          alt={card.name}
-                          className="max-h-full max-w-full object-contain"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder.svg';
-                          }}
-                        />
-                      </div>
-
-                      <h3 className="font-bold text-lg mb-2 line-clamp-2">{card.name}</h3>
-                      
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        <Badge variant="outline" className="text-xs">
-                          {card.card_type}
-                        </Badge>
-                      </div>
-
-                      {card.rating && (
-                        <div className="flex items-center gap-1 mb-3 text-sm">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-semibold">{card.rating}</span>
+                        <div className="mb-3 h-32 flex items-center justify-center bg-muted/30 rounded-lg">
+                          <img 
+                            src={card.card_bg_image || card.image || '/placeholder.svg'}
+                            alt={card.name}
+                            className="max-h-full max-w-full object-contain"
+                            onError={(e) => {
+                              e.currentTarget.src = '/placeholder.svg';
+                            }}
+                          />
                         </div>
-                      )}
 
-                      <Button
-                        className="w-full mt-2"
-                        size="sm"
-                        onClick={() => openRedirectInterstitial({
-                          networkUrl: card.card_apply_link,
-                          cardId: card.id || card.seo_card_alias,
-                          cardName: card.name,
-                          bankName: extractBankName(card.card_apply_link),
-                          bankLogo: extractBankLogo(card.card_apply_link)
-                        })}
-                      >
-                        Apply Now
-                        <ExternalLink className="ml-2 w-3 h-3" />
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full">
+                        <h3 className="font-bold text-lg mb-2 line-clamp-2">{card.name}</h3>
+                        
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          <Badge variant="outline" className="text-xs">
+                            {card.card_type}
+                          </Badge>
+                        </div>
+
+                        {card.rating && (
+                          <div className="flex items-center gap-1 mb-3 text-sm">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="font-semibold">{card.rating}</span>
+                          </div>
+                        )}
+
+                        <Button
+                          className="w-full mt-2"
+                          size="sm"
+                          onClick={() => openRedirectInterstitial({
+                            networkUrl: card.card_apply_link,
+                            cardId: card.id || card.seo_card_alias,
+                            cardName: card.name,
+                            bankName: extractBankName(card.card_apply_link),
+                            bankLogo: extractBankLogo(card.card_apply_link)
+                          })}
+                        >
+                          Apply Now
+                          <ExternalLink className="ml-2 w-3 h-3" />
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full">
                       <div className="w-full mb-4 space-y-2">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-primary" />
@@ -474,7 +491,8 @@ export function ComparePanel({ open, onOpenChange, preSelectedCard }: ComparePan
                     </div>
                   )}
                 </div>
-              ))}
+              );
+            })}
             </div>
 
             {/* Comparison Details - Only show if we have at least 2 cards */}
