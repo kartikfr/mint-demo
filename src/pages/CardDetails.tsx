@@ -359,13 +359,13 @@ export default function CardDetails() {
                   Quick Eligibility Check - No Docs
                 </Button>
                 <Button
-                  size="lg"
-                  variant="outline"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => {
                     toggleCard(card);
                     setIsComparePanelOpen(true);
                   }}
-                  className="border-white text-white hover:bg-white/10"
+                  className="text-white/70 hover:text-white hover:bg-white/10"
                 >
                   <Plus className="mr-2 w-4 h-4" />
                   Compare

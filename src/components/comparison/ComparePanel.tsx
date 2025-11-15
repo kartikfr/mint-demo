@@ -56,46 +56,45 @@ export function ComparePanel({ open, onOpenChange }: ComparePanelProps) {
     });
   };
 
+  // Fetch all cards once on mount
+  const [allCards, setAllCards] = useState<any[]>([]);
+  const [isLoadingCards, setIsLoadingCards] = useState(false);
+
+  useEffect(() => {
+    setIsLoadingCards(true);
+    cardService.getCardListing({
+      slug: '',
+      banks_ids: [],
+      card_networks: [],
+      annualFees: '',
+      credit_score: '',
+      sort_by: '',
+      free_cards: '',
+      eligiblityPayload: {},
+      cardGeniusPayload: []
+    }).then(response => {
+      if (response.data?.data) {
+        setAllCards(response.data.data);
+      }
+    }).finally(() => {
+      setIsLoadingCards(false);
+    });
+  }, []);
+
   // Search for cards - slot 0
   useEffect(() => {
     const query = debouncedQuery0;
     const slotIndex = 0;
     
     if (query && query.length >= 2) {
-      setIsSearching(prev => {
-        const newState = [...prev];
-        newState[slotIndex] = true;
-        return newState;
-      });
-
-      cardService.getCardListing({
-        slug: '',
-        banks_ids: [],
-        card_networks: [],
-        annualFees: '',
-        credit_score: '',
-        sort_by: '',
-        free_cards: '',
-        eligiblityPayload: {},
-        cardGeniusPayload: []
-      }).then(response => {
-        if (response.data?.data) {
-          const filtered = response.data.data.filter((card: any) =>
-            card.name.toLowerCase().includes(query.toLowerCase())
-          ).slice(0, 5);
-          
-          setSearchResults(prev => {
-            const newResults = [...prev];
-            newResults[slotIndex] = filtered;
-            return newResults;
-          });
-        }
-      }).finally(() => {
-        setIsSearching(prev => {
-          const newState = [...prev];
-          newState[slotIndex] = false;
-          return newState;
-        });
+      const filtered = allCards.filter((card: any) =>
+        card.name.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 5);
+      
+      setSearchResults(prev => {
+        const newResults = [...prev];
+        newResults[slotIndex] = filtered;
+        return newResults;
       });
     } else {
       setSearchResults(prev => {
@@ -104,7 +103,7 @@ export function ComparePanel({ open, onOpenChange }: ComparePanelProps) {
         return newResults;
       });
     }
-  }, [debouncedQuery0]);
+  }, [debouncedQuery0, allCards]);
 
   // Search for cards - slot 1
   useEffect(() => {
@@ -112,40 +111,14 @@ export function ComparePanel({ open, onOpenChange }: ComparePanelProps) {
     const slotIndex = 1;
     
     if (query && query.length >= 2) {
-      setIsSearching(prev => {
-        const newState = [...prev];
-        newState[slotIndex] = true;
-        return newState;
-      });
-
-      cardService.getCardListing({
-        slug: '',
-        banks_ids: [],
-        card_networks: [],
-        annualFees: '',
-        credit_score: '',
-        sort_by: '',
-        free_cards: '',
-        eligiblityPayload: {},
-        cardGeniusPayload: []
-      }).then(response => {
-        if (response.data?.data) {
-          const filtered = response.data.data.filter((card: any) =>
-            card.name.toLowerCase().includes(query.toLowerCase())
-          ).slice(0, 5);
-          
-          setSearchResults(prev => {
-            const newResults = [...prev];
-            newResults[slotIndex] = filtered;
-            return newResults;
-          });
-        }
-      }).finally(() => {
-        setIsSearching(prev => {
-          const newState = [...prev];
-          newState[slotIndex] = false;
-          return newState;
-        });
+      const filtered = allCards.filter((card: any) =>
+        card.name.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 5);
+      
+      setSearchResults(prev => {
+        const newResults = [...prev];
+        newResults[slotIndex] = filtered;
+        return newResults;
       });
     } else {
       setSearchResults(prev => {
@@ -154,7 +127,7 @@ export function ComparePanel({ open, onOpenChange }: ComparePanelProps) {
         return newResults;
       });
     }
-  }, [debouncedQuery1]);
+  }, [debouncedQuery1, allCards]);
 
   // Search for cards - slot 2
   useEffect(() => {
@@ -162,40 +135,14 @@ export function ComparePanel({ open, onOpenChange }: ComparePanelProps) {
     const slotIndex = 2;
     
     if (query && query.length >= 2) {
-      setIsSearching(prev => {
-        const newState = [...prev];
-        newState[slotIndex] = true;
-        return newState;
-      });
-
-      cardService.getCardListing({
-        slug: '',
-        banks_ids: [],
-        card_networks: [],
-        annualFees: '',
-        credit_score: '',
-        sort_by: '',
-        free_cards: '',
-        eligiblityPayload: {},
-        cardGeniusPayload: []
-      }).then(response => {
-        if (response.data?.data) {
-          const filtered = response.data.data.filter((card: any) =>
-            card.name.toLowerCase().includes(query.toLowerCase())
-          ).slice(0, 5);
-          
-          setSearchResults(prev => {
-            const newResults = [...prev];
-            newResults[slotIndex] = filtered;
-            return newResults;
-          });
-        }
-      }).finally(() => {
-        setIsSearching(prev => {
-          const newState = [...prev];
-          newState[slotIndex] = false;
-          return newState;
-        });
+      const filtered = allCards.filter((card: any) =>
+        card.name.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 5);
+      
+      setSearchResults(prev => {
+        const newResults = [...prev];
+        newResults[slotIndex] = filtered;
+        return newResults;
       });
     } else {
       setSearchResults(prev => {
@@ -204,7 +151,7 @@ export function ComparePanel({ open, onOpenChange }: ComparePanelProps) {
         return newResults;
       });
     }
-  }, [debouncedQuery2]);
+  }, [debouncedQuery2, allCards]);
 
   const handleSearchChange = (slotIndex: number, value: string) => {
     setSearchQueries(prev => {
@@ -387,7 +334,7 @@ export function ComparePanel({ open, onOpenChange }: ComparePanelProps) {
                         
                         {/* Search Results Dropdown */}
                         {searchResults[slotIndex].length > 0 && (
-                          <div className="absolute z-20 w-[calc(33%-2rem)] mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-auto">
+                          <div className="absolute z-20 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-auto">
                             {searchResults[slotIndex].map((result: any) => (
                               <button
                                 key={result.id || result.seo_card_alias}
@@ -411,9 +358,9 @@ export function ComparePanel({ open, onOpenChange }: ComparePanelProps) {
                           </div>
                         )}
                         
-                        {isSearching[slotIndex] && (
+                        {isLoadingCards && (
                           <div className="text-center text-sm text-muted-foreground mt-2">
-                            Searching...
+                            Loading cards...
                           </div>
                         )}
                       </div>
