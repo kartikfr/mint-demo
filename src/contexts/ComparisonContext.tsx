@@ -9,6 +9,7 @@ interface ComparisonContextType {
   clearAll: () => void;
   isSelected: (cardId: string) => boolean;
   canAddMore: boolean;
+  startComparisonWith: (card: any) => void;
 }
 
 const ComparisonContext = createContext<ComparisonContextType | undefined>(undefined);
@@ -86,6 +87,15 @@ export function ComparisonProvider({ children, maxCompare = 2 }: { children: Rea
 
   const canAddMore = selectedCards.length < maxCompare;
 
+  const startComparisonWith = (card: any) => {
+    // Clear all existing selections and add this card as the first selection
+    setSelectedCards([card]);
+    toast.success('Comparison started', {
+      description: `${card.name} selected. Add ${maxCompare - 1} more card${maxCompare > 2 ? 's' : ''} to compare.`,
+      position: 'top-right'
+    });
+  };
+
   return (
     <ComparisonContext.Provider value={{
       selectedCards,
@@ -94,7 +104,8 @@ export function ComparisonProvider({ children, maxCompare = 2 }: { children: Rea
       removeCard,
       clearAll,
       isSelected,
-      canAddMore
+      canAddMore,
+      startComparisonWith
     }}>
       {children}
     </ComparisonContext.Provider>

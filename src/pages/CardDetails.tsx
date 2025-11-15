@@ -88,7 +88,7 @@ export default function CardDetails() {
   const [showEligibilityDialog, setShowEligibilityDialog] = useState(false);
   const [isComparePanelOpen, setIsComparePanelOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
-  const { toggleCard, isSelected } = useComparison();
+  const { toggleCard, isSelected, startComparisonWith } = useComparison();
   const heroRef = useRef<HTMLDivElement>(null);
   const feesRef = useRef<HTMLDivElement>(null);
   const benefitsRef = useRef<HTMLDivElement>(null);
@@ -365,7 +365,7 @@ export default function CardDetails() {
                   size="sm"
                   variant={isSelected(card.seo_card_alias) ? "secondary" : "ghost"}
                   onClick={() => {
-                    toggleCard(card);
+                    startComparisonWith(card);
                     setIsComparePanelOpen(true);
                   }}
                   className={isSelected(card.seo_card_alias) 
@@ -407,7 +407,7 @@ export default function CardDetails() {
               size="lg"
               variant={isSelected(card.seo_card_alias) ? "default" : "outline"}
               onClick={() => {
-                toggleCard(card);
+                startComparisonWith(card);
                 setIsComparePanelOpen(true);
               }}
               className={isSelected(card.seo_card_alias)
