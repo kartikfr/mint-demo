@@ -31,7 +31,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-foreground text-background py-12">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             <div>
               <h3 className="font-bold text-lg mb-4">MoneyControl Cards</h3>
               <p className="text-sm opacity-80">
@@ -44,15 +44,8 @@ const Index = () => {
                 <li><Link to="/" className="hover:opacity-100">Home</Link></li>
                 <li><Link to="/cards" className="hover:opacity-100">All Cards</Link></li>
                 <li><Link to="/card-genius" className="hover:opacity-100">Card Genius</Link></li>
+                <li><Link to="/beat-my-card" className="hover:opacity-100">Beat My Card</Link></li>
                 <li><Link to="/about" className="hover:opacity-100">About</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm opacity-80">
-                <li><Link to="/about" className="hover:opacity-100">Privacy Policy</Link></li>
-                <li><Link to="/about" className="hover:opacity-100">Terms of Service</Link></li>
-                <li><Link to="/about" className="hover:opacity-100">Cookie Policy</Link></li>
               </ul>
             </div>
             <div>
