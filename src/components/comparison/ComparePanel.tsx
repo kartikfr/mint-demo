@@ -290,7 +290,28 @@ export function ComparePanel({ open, onOpenChange, preSelectedCard }: ComparePan
   ];
 
   // Fill slots array - up to maxCompare (3) slots
-  const slots = Array.from({ length: maxCompare }, (_, i) => selectedCards[i] || null);
+  // Ensure preSelectedCard is always first if present
+  const slots = Array.from({ length: maxCompare }, (_, i) => {
+    if (preSelectedCard && i === 0) {
+      // First slot should be the preSelectedCard if it's in selectedCards
+      const preSelectedId = preSelectedCard.seo_card_alias || preSelectedCard.id?.toString();
+      const preSelectedInList = selectedCards.find(
+        card => (card.seo_card_alias || card.id?.toString()) === preSelectedId
+      );
+      if (preSelectedInList) {
+        return preSelectedInList;
+      }
+    }
+    
+    // For other slots, show remaining cards (excluding preSelectedCard if it's in first slot)
+    const preSelectedId = preSelectedCard ? (preSelectedCard.seo_card_alias || preSelectedCard.id?.toString()) : null;
+    const otherCards = selectedCards.filter(
+      card => (card.seo_card_alias || card.id?.toString()) !== preSelectedId
+    );
+    
+    const adjustedIndex = (preSelectedCard && i > 0) ? i - 1 : i;
+    return otherCards[adjustedIndex] || null;
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
