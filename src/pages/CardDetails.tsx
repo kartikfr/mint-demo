@@ -468,26 +468,31 @@ export default function CardDetails() {
           <section className="bg-card border border-border rounded-xl p-6" id="fees">
             <h2 className="text-2xl font-bold text-foreground mb-6">Fees</h2>
             <div className="space-y-4">
-              <div className="flex justify-between items-start pb-4 border-b border-border">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3 pb-4 border-b border-border">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Joining Fee</p>
                   <p className="text-2xl font-bold text-foreground">₹{card.joining_fee_text}</p>
                 </div>
                 {card.joining_fee_offset && (
-                  <Badge variant="secondary" className="text-xs max-w-[200px]">
-                    {card.joining_fee_offset}
-                  </Badge>
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg px-4 py-2.5 max-w-full md:max-w-sm">
+                    <p className="text-xs font-medium text-primary leading-relaxed">
+                      {card.joining_fee_offset}
+                    </p>
+                  </div>
                 )}
               </div>
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Annual Fee</p>
                   <p className="text-2xl font-bold text-foreground">₹{card.annual_fee_text}</p>
                 </div>
                 {card.annual_fee_waiver && (
-                  <Badge variant="secondary" className="text-xs max-w-[200px]">
-                    Waiver: {card.annual_fee_waiver}
-                  </Badge>
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg px-4 py-2.5 max-w-full md:max-w-sm">
+                    <p className="text-xs font-semibold text-primary mb-1">Waiver</p>
+                    <p className="text-xs text-primary/90 leading-relaxed">
+                      {card.annual_fee_waiver}
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
