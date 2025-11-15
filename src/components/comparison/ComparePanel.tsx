@@ -220,31 +220,63 @@ export function ComparePanel({ open, onOpenChange }: ComparePanelProps) {
       alwaysExpanded: true
     },
     {
+      id: 'key-benefits',
+      title: 'Key Benefits',
+      fields: [
+        { key: 'product_usps', label: 'Top Features', isArray: true }
+      ]
+    },
+    {
       id: 'costs',
-      title: 'Costs & Savings',
+      title: 'Costs & Fees',
       fields: [
         { key: 'joining_fee_text', label: 'Joining Fee', highlight: 'lower' },
+        { key: 'joining_fee_offset', label: 'Joining Fee Waiver' },
         { key: 'annual_fee_text', label: 'Annual Fee', highlight: 'lower' },
-        { key: 'annual_saving', label: 'Annual Savings', highlight: 'higher' }
+        { key: 'annual_fee_waiver', label: 'Annual Fee Waiver' }
       ]
     },
     {
       id: 'rewards',
-      title: 'Rewards & Benefits',
+      title: 'Rewards & Redemption',
       fields: [
-        { key: 'reward_conversion_rate', label: 'Reward Conversion' },
-        { key: 'redemption_options', label: 'Redemption Options', html: true }
+        { key: 'reward_conversion_rate', label: 'Reward Conversion Rate' },
+        { key: 'redemption_options', label: 'Redemption Options', html: true },
+        { key: 'redemption_catalogue', label: 'Redemption Catalogue', isLink: true }
       ]
     },
     {
       id: 'eligibility',
-      title: 'Eligibility',
+      title: 'Eligibility Requirements',
       fields: [
         { key: 'min_age', label: 'Minimum Age' },
         { key: 'max_age', label: 'Maximum Age' },
         { key: 'income_salaried', label: 'Income Required (Salaried)' },
-        { key: 'crif', label: 'Credit Score' },
+        { key: 'income_self_emp', label: 'Income Required (Self-Employed)' },
+        { key: 'crif', label: 'Credit Score Required' },
         { key: 'employment_type', label: 'Employment Type' }
+      ]
+    },
+    {
+      id: 'exclusions',
+      title: 'Exclusions',
+      fields: [
+        { key: 'exclusion_earnings', label: 'Earning Exclusions', isList: true },
+        { key: 'exclusion_spends', label: 'Spending Exclusions', isList: true }
+      ]
+    },
+    {
+      id: 'benefits',
+      title: 'All Card Benefits',
+      fields: [
+        { key: 'product_benefits', label: 'Benefits', isDetailedArray: true }
+      ]
+    },
+    {
+      id: 'best-for',
+      title: 'Best For',
+      fields: [
+        { key: 'tags', label: 'Categories', isTags: true }
       ]
     }
   ];
@@ -472,7 +504,60 @@ export function ComparePanel({ open, onOpenChange }: ComparePanelProps) {
                                       {isBest && (
                                         <Trophy className="w-4 h-4 text-primary inline mr-1" />
                                       )}
-                                      {field.html ? (
+                                      
+                                      {/* Handle different field types */}
+                                      {field.isArray && Array.isArray(value) ? (
+                                        <div className="space-y-2">
+                                          {value.slice(0, 3).map((item: any, i: number) => (
+                                            <div key={i} className="text-xs">
+                                              <div className="font-semibold">{item.header}</div>
+                                              <div className="text-muted-foreground">{item.description}</div>
+                                            </div>
+                                          ))}
+                                          {value.length > 3 && (
+                                            <p className="text-xs text-muted-foreground">+{value.length - 3} more</p>
+                                          )}
+                                        </div>
+                                      ) : field.isDetailedArray && Array.isArray(value) ? (
+                                        <div className="space-y-1">
+                                          <p className="font-medium">{value.length} benefits</p>
+                                          <div className="text-xs text-muted-foreground space-y-1">
+                                            {value.slice(0, 2).map((item: any, i: number) => (
+                                              <div key={i}>• {item.benefit_name}</div>
+                                            ))}
+                                            {value.length > 2 && (
+                                              <div>+{value.length - 2} more</div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : field.isList && typeof value === 'string' ? (
+                                        <ul className="list-disc list-inside space-y-1 text-xs">
+                                          {value.split(',').slice(0, 3).map((item: string, i: number) => (
+                                            <li key={i} className="text-muted-foreground">{item.trim()}</li>
+                                          ))}
+                                          {value.split(',').length > 3 && (
+                                            <li className="text-muted-foreground">+{value.split(',').length - 3} more</li>
+                                          )}
+                                        </ul>
+                                      ) : field.isTags && Array.isArray(value) ? (
+                                        <div className="flex flex-wrap gap-1">
+                                          {value.map((tag: any) => (
+                                            <Badge key={tag.id} variant="secondary" className="text-xs">
+                                              {tag.name}
+                                            </Badge>
+                                          ))}
+                                        </div>
+                                      ) : field.isLink && value ? (
+                                        <a 
+                                          href={value} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-primary hover:underline text-xs flex items-center gap-1"
+                                        >
+                                          View Catalogue
+                                          <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                      ) : field.html ? (
                                         <div 
                                           className="prose prose-sm max-w-none"
                                           dangerouslySetInnerHTML={{ __html: sanitizeHtml(value || 'N/A') }}
