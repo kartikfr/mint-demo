@@ -835,9 +835,12 @@ const CardGenius = () => {
 
           {/* Results Table */}
           <TooltipProvider>
-            <div className="bg-white rounded-xl border border-border overflow-hidden">
-              <div className="overflow-x-auto pb-3">
-                <table className="w-full table-fixed">
+            <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+              {/* Scroll hint indicator */}
+              <div className="bg-gradient-to-r from-transparent via-muted/20 to-transparent h-1"></div>
+              
+              <div className="overflow-x-auto pb-3 scroll-smooth">
+                <table className="w-full table-fixed min-w-[1200px]">
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="text-left p-4 font-semibold text-sm text-foreground w-64">Credit Cards</th>
@@ -852,73 +855,51 @@ const CardGenius = () => {
                             <span className="text-2xl">+</span>
                           </th>
                           <th className="text-center p-4 font-semibold text-sm text-foreground w-40">
-                            <div className="flex items-center justify-center gap-1">
-                              Milestone Benefits
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="w-4 h-4 text-muted-foreground cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p>Additional benefits like vouchers, reward points, or perks earned by achieving spending milestones</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
+                            Milestones
                           </th>
                           <th className="text-center p-4 font-semibold text-sm text-muted-foreground w-12">
                             <span className="text-2xl">-</span>
                           </th>
                           <th className="text-center p-4 font-semibold text-sm text-foreground w-36">
-                            <div className="flex items-center justify-center gap-1">
-                              Joining Fees
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="w-4 h-4 text-muted-foreground cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p>Annual or one-time fees charged by the bank for this credit card</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
+                            Joining Fee
                           </th>
                           <th className="text-center p-4 font-semibold text-sm text-muted-foreground w-12">
                             <span className="text-2xl">=</span>
                           </th>
                           <th className="text-center p-4 font-semibold text-sm text-foreground w-36">
-                            <div className="flex items-center justify-center gap-1">
-                              Net Savings
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="w-4 h-4 text-muted-foreground cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p>Your actual profit calculated as: Total Savings + Milestone Benefits - Joining Fees</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
+                            Net Savings
                           </th>
                         </>
                       )}
                       
                       {/* Detailed Breakdown Tab - Show category columns + summary */}
                       {activeTab === 'detailed' && (
-                        <>
+                         <>
                           {spendingCategories.map((category, idx) => {
-                            const displayName = questions.find(q => q.field === category)?.question
-                              .replace('How much do you spend on ', '')
-                              .replace('How much do you spend at ', '')
-                              .replace('How much do you spend ', '')
-                              .replace(' in a month?', '')
-                              .replace(' in a year?', '')
-                              .replace(' every month?', '')
-                              .replace(' monthly?', '')
-                              .replace(' annually?', '')
-                              .replace("What's your average ", '')
-                              .replace('And what about your ', '')
-                              .replace('How much do you pay for ', '')
-                              .replace('How much do you pay in ', '')
-                              .replace('How often do you visit ', '')
-                              .replace('Plus, what about ', '')
-                              || category.replace(/_/g, ' ');
+                            // Simplified category names
+                            const categoryNames: Record<string, string> = {
+                              'flights_annual': 'Flights',
+                              'hotels_annual': 'Hotels',
+                              'fuel': 'Fuel',
+                              'dining_or_going_out': 'Dining',
+                              'amazon_spends': 'Amazon',
+                              'flipkart_spends': 'Flipkart',
+                              'other_online_spends': 'Online Shopping',
+                              'other_offline_spends': 'Offline Shopping',
+                              'grocery_spends_online': 'Groceries',
+                              'online_food_ordering': 'Food Delivery',
+                              'mobile_phone_bills': 'Mobile Bills',
+                              'electricity_bills': 'Electricity',
+                              'water_bills': 'Water',
+                              'insurance_health_annual': 'Health Insurance',
+                              'insurance_car_or_bike_annual': 'Vehicle Insurance',
+                              'rent': 'Rent',
+                              'school_fees': 'School Fees',
+                              'domestic_lounge_usage_quarterly': 'Domestic Lounge',
+                              'international_lounge_usage_quarterly': 'Intl Lounge'
+                            };
+                            
+                            const displayName = categoryNames[category] || category.replace(/_/g, ' ');
                             
                             return (
                               <React.Fragment key={category}>
@@ -943,49 +924,19 @@ const CardGenius = () => {
                             <span className="text-2xl">+</span>
                           </th>
                           <th className="text-center p-4 font-semibold text-sm text-foreground w-40">
-                            <div className="flex items-center justify-center gap-1">
-                              Milestone Benefits
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="w-4 h-4 text-muted-foreground cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p>Additional benefits like vouchers, reward points, or perks earned by achieving spending milestones</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
+                            Milestones
                           </th>
                           <th className="text-center p-4 font-semibold text-sm text-muted-foreground w-12">
                             <span className="text-2xl">-</span>
                           </th>
                           <th className="text-center p-4 font-semibold text-sm text-foreground w-36">
-                            <div className="flex items-center justify-center gap-1">
-                              Joining Fees
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="w-4 h-4 text-muted-foreground cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p>Annual or one-time fees charged by the bank for this credit card</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
+                            Joining Fee
                           </th>
                           <th className="text-center p-4 font-semibold text-sm text-muted-foreground w-12">
                             <span className="text-2xl">=</span>
                           </th>
                           <th className="text-center p-4 font-semibold text-sm text-foreground w-36">
-                            <div className="flex items-center justify-center gap-1">
-                              Net Savings
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Info className="w-4 h-4 text-muted-foreground cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <p>Your actual profit calculated as: Total Savings + Milestone Benefits - Joining Fees</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
+                            Net Savings
                           </th>
                         </>
                       )}
