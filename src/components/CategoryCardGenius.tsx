@@ -396,7 +396,7 @@ const CategoryCardGenius = () => {
               }`}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <category.icon className={`w-8 h-8 mx-auto mb-3 ${category.color} group-hover:scale-110 transition-transform relative z-10`} />
+              <category.icon className={`w-12 h-12 mx-auto mb-3 ${category.color} group-hover:scale-110 transition-transform relative z-10`} />
               <p className="text-sm font-semibold relative z-10">{category.name}</p>
             </button>
           ))}
