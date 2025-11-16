@@ -554,7 +554,7 @@ const BeatMyCard = () => {
                 </Badge>
                 <Badge variant="secondary" className="px-4 py-2 text-sm font-medium bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors">
                   <Shield className="w-4 h-4 mr-2" />
-                  100% Secure
+                  Unbiased Results
                 </Badge>
                 <Badge variant="secondary" className="px-4 py-2 text-sm font-medium bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20 transition-colors">
                   <Zap className="w-4 h-4 mr-2" />

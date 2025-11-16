@@ -748,10 +748,10 @@ const CardListing = () => {
                 <>
                   <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredCards.slice(0, displayCount).map((card, index) => (
-                      <div
-                        key={card.id || index}
-                        className="bg-card rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:-translate-y-2"
-                      >
+                  <div
+                    key={card.id || index}
+                    className="bg-card rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all hover:-translate-y-2 flex flex-col h-full"
+                  >
                         <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center p-4">
                           {/* Compare Toggle Icon - Top Right */}
                           <div className="absolute top-3 right-3 z-20">
@@ -812,7 +812,7 @@ const CardListing = () => {
                           />
                         </div>
 
-                        <div className="p-6">
+                        <div className="p-6 flex flex-col flex-grow">
                           <div className="mb-2 flex items-center gap-2 flex-wrap">
                             <Badge variant="outline" className="text-xs">
                               {card.card_type}
@@ -822,7 +822,7 @@ const CardListing = () => {
                             )}
                           </div>
           
-                          <h3 className="text-xl font-bold mb-4 line-clamp-2">{card.name}</h3>
+                          <h3 className="text-xl font-bold mb-4 line-clamp-2 min-h-[3.5rem]">{card.name}</h3>
                           
                           <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg mb-4">
                             <div>
@@ -843,7 +843,7 @@ const CardListing = () => {
                             </div>
                           </div>
 
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 mt-auto">
                             <Link to={`/cards/${card.seo_card_alias || card.card_alias}`} className="flex-1">
                               <Button variant="outline" className="w-full">Details</Button>
                             </Link>
