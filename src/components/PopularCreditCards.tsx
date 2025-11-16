@@ -66,7 +66,7 @@ const PopularCreditCards = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Cards That Match Your Lifestyle
+            Explore our Top Cards
           </h2>
           
         </div>
@@ -100,17 +100,6 @@ const PopularCreditCards = () => {
                         <h3 className="text-xl font-bold mb-2 line-clamp-2">
                           {card.name}
                         </h3>
-
-                        {/* Rating */}
-                        {card.user_rating_count && <div className="flex items-center gap-2 mb-4">
-                            <div className="flex items-center gap-1">
-                              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                              <span className="text-sm font-semibold">{card.rating}</span>
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                              ({card.user_rating_count.toLocaleString()} reviews)
-                            </span>
-                          </div>}
 
                         {/* Fees */}
                         <div className="grid grid-cols-2 gap-3 p-4 bg-muted/50 rounded-lg mb-4">

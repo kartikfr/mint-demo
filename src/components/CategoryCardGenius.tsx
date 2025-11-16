@@ -378,10 +378,10 @@ const CategoryCardGenius = () => {
             <span className="text-sm font-semibold">Smart Card Calculator</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Find Your Perfect Card in 30 Seconds
+            Find Best Cards by Category
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Tell us where you spend, and we'll calculate exactly how much you can save with the right credit card
+            Tell us where you spend, and we'll find the best credit card for you in 30 seconds
           </p>
         </div>
 
