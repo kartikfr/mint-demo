@@ -574,6 +574,7 @@ const BeatMyCard = () => {
             <CardSearchDropdown cards={filteredCards} selectedCard={selectedCard} onCardSelect={handleCardSelect} onClearSelection={() => setSelectedCard(null)} isLoading={isLoading} />
           </div>
         </div>
+        </div>
         <Footer />
       </>
     );
@@ -669,6 +670,7 @@ const BeatMyCard = () => {
             </div>
           </div>
         </div>
+        </div>
         <Footer />
       </>
     );
@@ -677,6 +679,7 @@ const BeatMyCard = () => {
   // Render results
   if (step === 'results' && userCardData && geniusCardData) {
     const savingsDifference = Math.abs(geniusCardData.annual_saving - userCardData.annual_saving);
+    const maxSavings = Math.max(userCardData.annual_saving, geniusCardData.annual_saving);
     return (
       <>
         <Navigation />
@@ -1049,6 +1052,7 @@ const BeatMyCard = () => {
                 </Button>}
             </div>
           </div>
+        </div>
         </div>
         <Footer />
       </>
