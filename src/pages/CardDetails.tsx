@@ -138,7 +138,18 @@ export default function CardDetails() {
 
   const scrollToSection = (ref: React.RefObject<HTMLDivElement>, sectionId: string) => {
     setActiveSection(sectionId);
-    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (ref.current) {
+      const navHeight = 80; // Navigation bar height
+      const quickNavHeight = 60; // Quick navigation height
+      const offset = navHeight + quickNavHeight + 20; // Total offset with some padding
+      const elementPosition = ref.current.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
   };
 
   const fetchCardDetails = async () => {
