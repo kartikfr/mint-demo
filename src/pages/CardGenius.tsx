@@ -534,7 +534,7 @@ const CardGenius = () => {
             </div>
           </header>
 
-          <main className="container mx-auto px-4 py-8 max-w-6xl">
+          <main className="container mx-auto px-4 py-8 max-w-6xl mb-8">{/* Added mb-8 for footer spacing */}
             <h1 className="text-2xl font-bold text-foreground mb-6">{selectedCard.card_name}</h1>
             
             <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -719,6 +719,7 @@ const CardGenius = () => {
             })()}
             </div>
           </main>
+          <Footer />
         </div>;
     }
 
@@ -735,8 +736,9 @@ const CardGenius = () => {
     const spendingCategories = Object.entries(responses).filter(([_, value]) => value > 0).map(([key]) => key);
 
     // Results list view
-    return <div className="min-h-screen bg-background">
-        <header className="sticky top-0 bg-white border-b border-border z-50">
+    return <div className="min-h-screen bg-background pt-16">
+        <Navigation />
+        <header className="sticky top-16 bg-white border-b border-border z-50">
           <div className="container mx-auto px-4 py-4">
             <button onClick={() => navigate('/')} className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
               <ArrowLeft className="w-5 h-5" />
@@ -745,7 +747,7 @@ const CardGenius = () => {
           </div>
         </header>
 
-        <main className="container mx-auto px-4 py-8 max-w-7xl">
+        <main className="container mx-auto px-4 py-8 max-w-7xl mb-8">{/* Added mb-8 for footer spacing */}
           {/* Title */}
           <h1 className="text-3xl font-bold text-center text-foreground mb-8">
             The Best Cards Sorted By Annual Savings!
@@ -1196,6 +1198,7 @@ const CardGenius = () => {
             </Button>
           </div>
         </main>
+        <Footer />
       </div>;
   }
   return <>
