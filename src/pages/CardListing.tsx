@@ -629,7 +629,7 @@ const CardListing = () => {
               </div>
 
               {/* Active Filters */}
-              {(filters.free_cards || filters.annualFees || filters.credit_score || searchQuery) && <div className="mb-4 flex flex-wrap gap-2">
+              {(filters.category !== 'all' || filters.card_networks.length > 0 || filters.free_cards || filters.annualFees || filters.credit_score || eligibilitySubmitted || searchQuery) && <div className="mb-4 flex flex-wrap gap-2">
                   {searchQuery && <Badge variant="secondary" className="gap-2">
                       Search: {searchQuery}
                       <X className="w-3 h-3 cursor-pointer" onClick={() => {
@@ -637,17 +637,57 @@ const CardListing = () => {
                   handleSearch();
                 }} />
                     </Badge>}
+                  {filters.category !== 'all' && <Badge variant="secondary" className="gap-2">
+                      Category: {(() => {
+                        const categoryLabels: Record<string, string> = {
+                          'fuel': 'Fuel',
+                          'shopping': 'Shopping',
+                          'online-food': 'Food Delivery',
+                          'dining': 'Dining',
+                          'grocery': 'Grocery',
+                          'travel': 'Travel',
+                          'utility': 'Utility'
+                        };
+                        return categoryLabels[filters.category] || filters.category;
+                      })()}
+                      <X className="w-3 h-3 cursor-pointer" onClick={() => handleFilterChange('category', 'all')} />
+                    </Badge>}
+                  {filters.card_networks.map(network => (
+                    <Badge key={network} variant="secondary" className="gap-2">
+                      {network === 'AmericanExpress' ? 'American Express' : network}
+                      <X className="w-3 h-3 cursor-pointer" onClick={() => {
+                        setFilters(prev => ({
+                          ...prev,
+                          card_networks: prev.card_networks.filter(n => n !== network)
+                        }));
+                      }} />
+                    </Badge>
+                  ))}
                   {filters.free_cards && <Badge variant="secondary" className="gap-2">
                       Lifetime Free
                       <X className="w-3 h-3 cursor-pointer" onClick={() => handleFilterChange('free_cards', false)} />
                     </Badge>}
-                  {filters.annualFees && <Badge variant="secondary" className="gap-2">
+                  {filters.annualFees && !filters.free_cards && <Badge variant="secondary" className="gap-2">
                       Fee: ₹{filters.annualFees}
                       <X className="w-3 h-3 cursor-pointer" onClick={() => handleFilterChange('annualFees', '')} />
                     </Badge>}
                   {filters.credit_score && <Badge variant="secondary" className="gap-2">
-                      Credit Score: {filters.credit_score}+
+                      Credit Score: {filters.credit_score}
                       <X className="w-3 h-3 cursor-pointer" onClick={() => handleFilterChange('credit_score', '')} />
+                    </Badge>}
+                  {eligibilitySubmitted && <Badge variant="secondary" className="gap-2 bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Eligibility Applied
+                      <X className="w-3 h-3 cursor-pointer" onClick={async () => {
+                        setEligibilitySubmitted(false);
+                        setEligibility({
+                          pincode: "",
+                          inhandIncome: "",
+                          empStatus: "salaried"
+                        });
+                        await fetchCards();
+                        toast.success("Eligibility filter removed");
+                      }} />
                     </Badge>}
                 </div>}
 

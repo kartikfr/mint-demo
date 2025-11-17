@@ -107,7 +107,7 @@ const FourKeyUSPs = () => {
       icon: StackedCards,
       iconColor: "bg-orange-500",
       title: "Browse All Cards",
-      description: "Explore our complete collection with detailed comparisons and honest user reviews",
+      description: "Browse all cards with clear benefits, fees, and features in one place.",
       cta: "Get Started",
       redirect: "/cards"
     }
