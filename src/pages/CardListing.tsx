@@ -148,26 +148,41 @@ const CardListing = () => {
         });
       }
 
-      // 2) Annual Fee range
+      // 2) Annual Fee range - Fix lifetime free filter
       if (Array.isArray(incomingCards) && filters.annualFees) {
         const val = filters.annualFees as string;
-        let min = 0;
-        let max = Number.POSITIVE_INFINITY;
-        if (val.includes('-')) {
-          const [a, b] = val.split('-');
-          min = parseInt(a, 10) || 0;
-          const parsedMax = parseInt(b, 10);
-          max = Number.isNaN(parsedMax) ? Number.POSITIVE_INFINITY : parsedMax;
-        } else if (val.endsWith('+')) {
-          min = parseInt(val, 10) || 0;
-          max = Number.POSITIVE_INFINITY;
+        
+        // Special case for "free" - check both joining fee and annual fee
+        if (val === 'free') {
+          incomingCards = incomingCards.filter((card: any) => {
+            const joiningFeeRaw = card.joining_fee_text ?? card.joining_fee ?? card.joiningFee ?? '0';
+            const annualFeeRaw = card.annual_fee_text ?? card.annual_fee ?? card.annualFees ?? '0';
+            const joiningFee = parseInt(joiningFeeRaw?.toString().replace(/[^0-9]/g, ''), 10);
+            const annualFee = parseInt(annualFeeRaw?.toString().replace(/[^0-9]/g, ''), 10);
+            const joiningFeeNum = Number.isFinite(joiningFee) ? joiningFee : 0;
+            const annualFeeNum = Number.isFinite(annualFee) ? annualFee : 0;
+            return joiningFeeNum === 0 && annualFeeNum === 0;
+          });
+        } else {
+          // Handle range filters
+          let min = 0;
+          let max = Number.POSITIVE_INFINITY;
+          if (val.includes('-')) {
+            const [a, b] = val.split('-');
+            min = parseInt(a, 10) || 0;
+            const parsedMax = parseInt(b, 10);
+            max = Number.isNaN(parsedMax) ? Number.POSITIVE_INFINITY : parsedMax;
+          } else if (val.endsWith('+')) {
+            min = parseInt(val, 10) || 0;
+            max = Number.POSITIVE_INFINITY;
+          }
+          incomingCards = incomingCards.filter((card: any) => {
+            const feeRaw = card.annual_fee_text ?? card.annual_fee ?? card.annualFees ?? '0';
+            const fee = parseInt(feeRaw?.toString().replace(/[^0-9]/g, ''), 10);
+            const feeNum = Number.isFinite(fee) ? fee : 0;
+            return feeNum >= min && feeNum <= max;
+          });
         }
-        incomingCards = incomingCards.filter((card: any) => {
-          const feeRaw = card.annual_fee_text ?? card.annual_fee ?? card.annualFees ?? '0';
-          const fee = parseInt(feeRaw?.toString().replace(/[^0-9]/g, ''), 10);
-          const feeNum = Number.isFinite(fee) ? fee : 0;
-          return feeNum >= min && feeNum <= max;
-        });
       }
 
       // 3) Credit Score buckets (maximum score)
@@ -466,8 +481,8 @@ const CardListing = () => {
         </CollapsibleContent>
       </Collapsible>
 
-      {/* Credit Score - Collapsed by default */}
-      <Collapsible defaultOpen={false}>
+      {/* Credit Score - Collapsed by default - COMMENTED OUT */}
+      {/* <Collapsible defaultOpen={false}>
         <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-muted/50 rounded-lg transition-colors">
           <h3 className="font-semibold">Credit Score</h3>
           <ChevronDown className="w-4 h-4 transition-transform ui-expanded:rotate-180" />
@@ -492,7 +507,7 @@ const CardListing = () => {
             </label>
           ))}
         </CollapsibleContent>
-      </Collapsible>
+      </Collapsible> */}
 
       {/* Card Network - Collapsed by default */}
       <Collapsible defaultOpen={false}>
@@ -536,7 +551,7 @@ const CardListing = () => {
       <section className="pt-28 pb-12 bg-gradient-hero">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-10">
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold">
+            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold whitespace-nowrap overflow-hidden text-ellipsis">
               Discover India's Best Credit Cards
             </h1>
           </div>
@@ -547,7 +562,7 @@ const CardListing = () => {
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 <Input
                   type="text"
-                  placeholder="Search by card name, bank, or benefit..."
+                  placeholder="Search by card name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -636,21 +651,65 @@ const CardListing = () => {
                     {eligibilitySubmitted ? "Eligibility Applied" : "Check Eligibility"}
                   </Button>
                 </div>
-                
-                {/* Try Genius button - show when category is selected */}
-                {filters.category !== 'all' && (
-                  <div className="mt-4 pt-4 border-t border-border/50">
-                    <Button 
-                      size="lg"
+              </div>
+
+              {/* AI Card Genius Promo - Show when category is selected */}
+              {filters.category !== 'all' && (
+                <div className="mb-6 bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20 rounded-2xl p-6">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-semibold text-foreground">
+                          Pro Tip: Try our AI Card Genius
+                        </h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Find your perfect credit card using real math. Enter your monthly spends and we'll calculate:
+                      </p>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>✓ Actual cashback you'll earn</li>
+                        <li>✓ Reward points → ₹ value</li>
+                        <li>✓ Net savings after fees</li>
+                        <li>✓ Best card for your lifestyle</li>
+                      </ul>
+                    </div>
+                    <Button
                       onClick={() => setShowGeniusDialog(true)}
-                      className="gap-2 shadow-md hover:shadow-lg transition-all bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap gap-2"
                     >
-                      <Sparkles className="w-5 h-5" />
-                      Try Genius for Personalized Recommendations
+                      <Sparkles className="w-4 h-4" />
+                      Enter My Spends
                     </Button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* AI Card Genius Promo - Show when on "All Cards" */}
+              {filters.category === 'all' && (
+                <div className="mb-6 bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20 rounded-2xl p-5">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        <h3 className="text-base font-semibold text-foreground">
+                          AI Card Genius
+                        </h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Find your best card in 30 seconds. Enter spends → See real savings.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => setShowGeniusDialog(true)}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Start Now
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Mobile Filter Button */}
               <div className="lg:hidden mb-4 flex items-center justify-between">
