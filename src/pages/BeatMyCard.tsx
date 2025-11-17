@@ -50,6 +50,8 @@ interface SpendingQuestion {
   min: number;
   max: number;
   step: number;
+  showCurrency?: boolean;
+  suffix?: string;
 }
 const questions: SpendingQuestion[] = [{
   field: 'amazon_spends',
@@ -622,8 +624,10 @@ const BeatMyCard = () => {
               </div>
 
               <SpendingInput 
+                question={question.question}
+                emoji={question.emoji}
                 value={responses[question.field] || 0} 
-                onChange={value => handleInputChange(question.field, value)} 
+                onChange={value => setResponses(prev => ({ ...prev, [question.field]: value }))} 
                 min={question.min} 
                 max={question.max} 
                 step={question.step} 
@@ -635,14 +639,14 @@ const BeatMyCard = () => {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  onClick={handlePrevious} 
+                  onClick={handlePrev} 
                   disabled={currentStep === 0} 
                   className="flex-1"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Previous
                 </Button>
-                <Button 
+                <Button
                   size="lg" 
                   onClick={handleNext} 
                   className="flex-1"

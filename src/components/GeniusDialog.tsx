@@ -106,11 +106,11 @@ export default function GeniusDialog({ open, onOpenChange, category, onSubmit }:
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <Sparkles className="w-6 h-6 text-primary" />
-            Card Genius - {category.charAt(0).toUpperCase() + category.slice(1)} Spending
+            ✨ AI Card Genius – {category.charAt(0).toUpperCase() + category.slice(1)} Spending
           </DialogTitle>
           </DialogHeader>
           <DialogDescription>
-            Answer a few quick questions to estimate your yearly savings.
+            Tell us your monthly spends and we'll estimate your total yearly savings.
           </DialogDescription>
         
         <div className="space-y-6 mt-4">
