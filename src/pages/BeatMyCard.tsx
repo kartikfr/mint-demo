@@ -570,18 +570,23 @@ const BeatMyCard = () => {
   if (step === 'questions') {
     const question = questions[currentStep];
     const progress = (currentStep + 1) / questions.length * 100;
+    
+    const handleSkipAll = () => {
+      calculateResults();
+    };
+    
+    const handleSkipQuestion = () => {
+      if (currentStep < questions.length - 1) {
+        setCurrentStep(prev => prev + 1);
+      } else {
+        calculateResults();
+      }
+    };
+    
     return <div className="min-h-screen bg-background">
         <Navigation />
         <div className="container mx-auto px-4 py-8 pt-24">
-          {/* Header with Navigation */}
-          <div className="flex items-center justify-between mb-8">
-            <Button variant="ghost" onClick={() => navigate('/')} className="gap-2 hover:bg-primary/10">
-              <Home className="h-4 w-4" />
-              <span className="hidden sm:inline">Back to Home</span>
-            </Button>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-3xl mx-auto">
             {/* Progress Bar */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-3">
@@ -592,7 +597,7 @@ const BeatMyCard = () => {
                   {Math.round(progress)}% Complete
                 </span>
               </div>
-              <div className="h-2 bg-secondary/20 rounded-full overflow-hidden">
+              <div className="h-2.5 bg-secondary/20 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-secondary to-primary transition-all duration-500 ease-out rounded-full" style={{
                 width: `${progress}%`
               }} />
@@ -600,31 +605,54 @@ const BeatMyCard = () => {
             </div>
 
             {/* Question Card */}
-            <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
-              <div className="flex items-start gap-4 mb-6">
-                <span className="text-4xl flex-shrink-0">{question.emoji}</span>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-semibold mb-2 text-foreground">{question.question}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {question.showCurrency === false ? 'Enter number of visits' : 'Enter amount in rupees'}
-                  </p>
-                </div>
-              </div>
+            <div className="bg-card border border-border rounded-3xl p-8 md:p-10 shadow-lg">
+              <h2 className="text-2xl md:text-3xl font-bold mb-8 text-foreground flex items-center gap-3">
+                {question.question} <span className="text-4xl">{question.emoji}</span>
+              </h2>
 
               <SpendingInput question={question.question} emoji={question.emoji} value={responses[question.field] || 0} onChange={value => setResponses(prev => ({
               ...prev,
               [question.field]: value
             }))} min={question.min} max={question.max} step={question.step} showCurrency={question.showCurrency} suffix={question.suffix} />
 
-              <div className="flex gap-3 mt-8">
-                <Button variant="outline" size="lg" onClick={handlePrev} disabled={currentStep === 0} className="flex-1">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 mt-10">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={handlePrev} 
+                  disabled={currentStep === 0} 
+                  className="flex-1 border-2 hover:bg-secondary/10 text-base py-6"
+                >
+                  <ArrowLeft className="w-5 h-5 mr-2" />
                   Previous
                 </Button>
-                <Button size="lg" onClick={handleNext} className="flex-1">
-                  {currentStep === questions.length - 1 ? 'Show Results' : 'Next'}
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={handleSkipAll} 
+                  className="sm:flex-1 border-2 hover:bg-muted text-base py-6"
+                >
+                  Skip All
                 </Button>
+                <Button 
+                  size="lg" 
+                  onClick={handleNext} 
+                  className="flex-1 bg-primary hover:bg-primary/90 text-base py-6"
+                >
+                  {currentStep === questions.length - 1 ? 'Show Results' : 'Next'}
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
+              
+              {/* Skip this question link */}
+              <div className="text-center mt-6">
+                <button 
+                  onClick={handleSkipQuestion}
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
+                >
+                  Skip this question →
+                </button>
               </div>
             </div>
           </div>
