@@ -187,6 +187,44 @@ const questions: SpendingQuestion[] = [{
   max: 50000,
   step: 1000
 }];
+// Normalization helpers to handle API inconsistencies
+const normalizeAlias = (item: any): string => {
+  return item?.seo_card_alias || item?.card_alias || '';
+};
+
+const normalizeCardListItem = (item: any): Card => {
+  return {
+    ...item,
+    seo_card_alias: item.seo_card_alias || item.card_alias
+  };
+};
+
+const getTotalSavings = (item: any): number => {
+  return Number(item.total_savings_yearly ?? item.total_savings ?? 0);
+};
+
+const normalizeBreakdown = (item: any): SpendingBreakdownItem[] => {
+  // If array exists, use it
+  const arr = item.spending_breakdown_array;
+  if (Array.isArray(arr) && arr.length > 0) return arr;
+  
+  // Otherwise, try to convert spending_breakdown object to array
+  const obj = item.spending_breakdown;
+  if (obj && typeof obj === 'object') {
+    return Object.entries(obj).map(([on, v]: any) => ({
+      on,
+      spend: v?.spend ?? 0,
+      points_earned: v?.points_earned ?? 0,
+      savings: v?.savings ?? v ?? 0,
+      explanation: v?.explanation,
+      conv_rate: v?.conv_rate,
+      maxCap: v?.maxCap
+    }));
+  }
+  
+  return [];
+};
+
 const BeatMyCard = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<'select' | 'questions' | 'results'>('select');
@@ -208,8 +246,11 @@ const BeatMyCard = () => {
     try {
       const response = await cardService.getPartnerCards();
       if (response.status === "success" && response.data && Array.isArray(response.data)) {
-        setCards(response.data);
-        setFilteredCards(response.data);
+        // Normalize all cards to ensure consistent alias usage
+        const normalizedCards = response.data.map(normalizeCardListItem);
+        setCards(normalizedCards);
+        setFilteredCards(normalizedCards);
+        console.info("✅ Fetched and normalized cards:", normalizedCards.length);
       } else {
         setCards([]);
         setFilteredCards([]);
@@ -277,108 +318,138 @@ const BeatMyCard = () => {
         school_fees: responses.school_fees || 0
       };
       const calculateResponse = await cardService.calculateCardGenius(completePayload);
-      console.log("=== Card Genius API Response ===", calculateResponse);
+      console.info("📊 Card Genius API Response received");
 
-      // API returns: { status: "success", data: { success: true, savings: [...] } }
       if (calculateResponse.status === "success" && calculateResponse.data?.success && calculateResponse.data?.savings && calculateResponse.data.savings.length > 0) {
         const savingsArray = calculateResponse.data.savings;
-        console.log("=== Savings Array ===", savingsArray.length, "cards found");
+        
+        // Normalize all results for consistent comparison
+        const normalized = savingsArray.map((s: any) => ({
+          ...s,
+          seo_card_alias: s.seo_card_alias || s.card_alias,
+          total_savings_unified: getTotalSavings(s),
+          spending_breakdown_array: normalizeBreakdown(s)
+        }));
+        
+        console.info("✅ Normalized", normalized.length, "card results");
 
-        // Sort by total_savings to get the top card
-        const sortedCards = [...savingsArray].sort((a: any, b: any) => {
-          const aSaving = a.total_savings || 0;
-          const bSaving = b.total_savings || 0;
-          return bSaving - aSaving;
+        // Sort by unified total savings to get the top card
+        const sortedCards = [...normalized].sort((a: any, b: any) => {
+          return b.total_savings_unified - a.total_savings_unified;
         });
         const topCard = sortedCards[0];
-        console.log("=== Top Card ===", topCard?.card_name, "with savings:", topCard?.total_savings);
+        console.info("🏆 Top card:", topCard?.card_name, "with savings:", topCard?.total_savings_unified);
 
-        // Find the user's selected card in the results by matching seo_card_alias
-        const userCardInResults = savingsArray.find((card: any) => card.seo_card_alias === selectedCard.seo_card_alias);
-        console.log("=== User's Selected Card in Results ===", userCardInResults);
+        // Find the user's selected card in the results by matching normalized alias
+        const selectedAlias = normalizeAlias(selectedCard);
+        const userCardInResults = normalized.find((card: any) => card.seo_card_alias === selectedAlias);
+        
+        console.info("🔍 Selected card alias:", selectedAlias);
+        console.info("📌 User card found in results:", !!userCardInResults);
+        
         if (!userCardInResults) {
-          console.error("User's card not found in results. Selected:", selectedCard.seo_card_alias);
-          toast.error("Your selected card was not found in the results");
-          return;
+          console.warn("⚠️ User's card not found in results, showing top card only");
+          toast.info("Your card wasn't in our comparison, but here's the top recommendation!");
+          // Continue anyway and show results with just the top card
         }
-        console.log("=== Fetching detailed card data ===");
-        console.log("User card alias:", selectedCard.seo_card_alias);
-        console.log("Top card alias:", topCard.seo_card_alias);
 
-        // Try to fetch detailed data for both cards, but use API data as fallback
+        console.info("🔄 Fetching detailed card data...");
+        console.info("User card alias for fetch:", selectedAlias);
+        console.info("Top card alias for fetch:", topCard.seo_card_alias);
+
+        // Fetch detailed data for both cards with fallbacks
         let userCardData = null;
         let geniusCardData = null;
+        
         try {
-          const [userCard, geniusCard] = await Promise.all([cardService.getCardDetailsByAlias(selectedCard.seo_card_alias).catch(err => {
-            console.error("User card fetch failed:", err);
-            return null;
-          }), cardService.getCardDetailsByAlias(topCard.seo_card_alias).catch(err => {
-            console.error("Genius card fetch failed:", err);
-            return null;
-          })]);
-          console.log("=== User Card Details Response ===", userCard);
-          console.log("=== Genius Card Details Response ===", geniusCard);
-
-          // User's card data - prioritize image from API response
-          if (userCard?.status === "success" && userCard.data?.[0]) {
-            userCardData = {
-              ...userCard.data[0],
-              image: userCardInResults.image || userCard.data[0].image,
-              // Use API image first
-              annual_saving: userCardInResults.total_savings || 0,
-              total_savings_yearly: userCardInResults.total_savings_yearly || 0,
-              spending_breakdown_array: userCardInResults.spending_breakdown_array || []
-            };
+          const fetchPromises = [];
+          
+          // Only fetch user card if it exists in results
+          if (userCardInResults) {
+            fetchPromises.push(
+              cardService.getCardDetailsByAlias(selectedAlias).catch(err => {
+                console.error("User card fetch failed:", err);
+                return null;
+              })
+            );
           } else {
-            // Fallback to selected card data with API savings and image
-            userCardData = {
-              ...selectedCard,
-              image: userCardInResults.image || selectedCard.image,
-              // Use API image first
-              name: userCardInResults.card_name || selectedCard.name,
-              annual_saving: userCardInResults.total_savings || 0,
-              total_savings_yearly: userCardInResults.total_savings_yearly || 0,
-              spending_breakdown_array: userCardInResults.spending_breakdown_array || []
-            };
-            console.log("Using fallback user card data");
+            fetchPromises.push(Promise.resolve(null));
+          }
+          
+          fetchPromises.push(
+            cardService.getCardDetailsByAlias(topCard.seo_card_alias).catch(err => {
+              console.error("Genius card fetch failed:", err);
+              return null;
+            })
+          );
+          
+          const [userCard, geniusCard] = await Promise.all(fetchPromises);
+          
+          console.info("📦 User Card Details:", userCard?.status);
+          console.info("📦 Genius Card Details:", geniusCard?.status);
+
+          // Build user's card data
+          if (userCardInResults) {
+            if (userCard?.status === "success" && userCard.data?.[0]) {
+              userCardData = {
+                ...userCard.data[0],
+                seo_card_alias: selectedAlias,
+                image: userCardInResults.image || userCard.data[0].image,
+                annual_saving: userCardInResults.total_savings_unified || 0,
+                total_savings_yearly: userCardInResults.total_savings_yearly || 0,
+                spending_breakdown_array: userCardInResults.spending_breakdown_array || []
+              };
+            } else {
+              // Fallback: Create card data from API response
+              userCardData = {
+                id: userCardInResults.id,
+                name: userCardInResults.card_name || selectedCard.name,
+                seo_card_alias: selectedAlias,
+                image: userCardInResults.image || selectedCard.image || '',
+                annual_saving: userCardInResults.total_savings_unified || 0,
+                total_savings_yearly: userCardInResults.total_savings_yearly || 0,
+                spending_breakdown_array: userCardInResults.spending_breakdown_array || [],
+                banks: selectedCard.banks || { name: userCardInResults.card_name?.split(' ')[0] || '' }
+              };
+              console.info("Using fallback user card data");
+            }
           }
 
-          // Genius card data - prioritize image from API response
+          // Build genius card data
           if (geniusCard?.status === "success" && geniusCard.data?.[0]) {
             geniusCardData = {
               ...geniusCard.data[0],
+              seo_card_alias: topCard.seo_card_alias,
               image: topCard.image || geniusCard.data[0].image,
-              // Use API image first
-              annual_saving: topCard.total_savings || 0,
+              annual_saving: topCard.total_savings_unified || 0,
               total_savings_yearly: topCard.total_savings_yearly || 0,
               spending_breakdown_array: topCard.spending_breakdown_array || []
             };
           } else {
-            // Fallback: Create card data from API response with API image
+            // Fallback: Create card data from API response
             geniusCardData = {
               id: topCard.id,
               name: topCard.card_name,
               seo_card_alias: topCard.seo_card_alias,
               image: topCard.image || '',
-              // Use API image directly
-              annual_saving: topCard.total_savings || 0,
+              annual_saving: topCard.total_savings_unified || 0,
               total_savings_yearly: topCard.total_savings_yearly || 0,
               spending_breakdown_array: topCard.spending_breakdown_array || [],
-              banks: {
-                name: topCard.card_name.split(' ')[0]
-              } // Extract bank name from card name
+              banks: { name: topCard.card_name?.split(' ')[0] || '' }
             };
-            console.log("Using fallback genius card data:", geniusCardData);
+            console.info("Using fallback genius card data");
           }
-          console.log("=== Setting User Card Data ===", userCardData);
-          console.log("=== Setting Genius Card Data ===", geniusCardData);
+          
+          console.info("✅ User Card Data ready:", !!userCardData);
+          console.info("✅ Genius Card Data ready:", !!geniusCardData);
 
-          // Calculate category-wise savings
+          // Calculate category-wise savings (handles null userCardData gracefully)
           const categoryBreakdown = calculateCategorySavings(responses, userCardData, geniusCardData);
           setCategorySavings(categoryBreakdown);
           setUserCardData(userCardData);
           setGeniusCardData(geniusCardData);
-          console.log("=== Setting step to results ===");
+          
+          console.info("🎯 Transitioning to results step");
           setStep('results');
         } catch (error) {
           console.error("Error processing card data:", error);
@@ -395,7 +466,7 @@ const BeatMyCard = () => {
       setIsCalculating(false);
     }
   };
-  const calculateCategorySavings = (spending: SpendingData, userCard: Card, geniusCard: Card): CategorySavings[] => {
+  const calculateCategorySavings = (spending: SpendingData, userCard: Card | null, geniusCard: Card): CategorySavings[] => {
     const categories: CategorySavings[] = [];
 
     // Map of spending categories to display names and emojis
@@ -479,8 +550,8 @@ const BeatMyCard = () => {
     const userBreakdownMap = new Map<string, number>();
     const geniusBreakdownMap = new Map<string, number>();
 
-    // Populate user card savings by category
-    if (userCard.spending_breakdown_array) {
+    // Populate user card savings by category (handle null gracefully)
+    if (userCard?.spending_breakdown_array) {
       userCard.spending_breakdown_array.forEach(item => {
         if (item.on && item.savings) {
           userBreakdownMap.set(item.on, item.savings);
@@ -496,8 +567,8 @@ const BeatMyCard = () => {
         }
       });
     }
-    console.log("=== User Card Breakdown Map ===", Object.fromEntries(userBreakdownMap));
-    console.log("=== Genius Card Breakdown Map ===", Object.fromEntries(geniusBreakdownMap));
+    
+    console.info("📊 Category breakdown maps created");
 
     // Build category comparison list
     const allCategories = new Set([...userBreakdownMap.keys(), ...geniusBreakdownMap.keys()]);
@@ -522,7 +593,7 @@ const BeatMyCard = () => {
     // Sort by the higher saving value between the two cards
     return categories.sort((a, b) => Math.max(b.userSaving, b.geniusSaving) - Math.max(a.userSaving, a.geniusSaving));
   };
-  const isUserWinner = userCardData && geniusCardData && userCardData.annual_saving >= geniusCardData.annual_saving;
+  const isUserWinner = userCardData && geniusCardData && (userCardData.annual_saving ?? 0) >= (geniusCardData.annual_saving ?? 0);
 
   // Render card selection
   if (step === 'select') {
