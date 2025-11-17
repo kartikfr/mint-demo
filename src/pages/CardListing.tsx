@@ -180,7 +180,6 @@ const CardListing = () => {
           return Number(aPriority) - Number(bPriority);
         });
       }
-
       setCards(Array.isArray(incomingCards) ? incomingCards : []);
     } catch (error) {
       console.error('Failed to fetch cards:', error);
@@ -494,7 +493,7 @@ const CardListing = () => {
       <section className="pt-28 pb-12 bg-gradient-hero">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-10">
-            <h1 className="text-3xl md:text-4xl lg:text-[2.75rem] xl:text-5xl font-bold text-foreground leading-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight lg:text-[[2.75rem]] xl:text-4xl">
               Discover India's Best Credit&nbsp;Cards
             </h1>
           </div>
@@ -574,17 +573,17 @@ const CardListing = () => {
 
               {/* AI Card Genius Promo - Show only when category is selected (not "All Cards") */}
               {filters.category !== 'all' && (() => {
-                const categoryLabels: Record<string, string> = {
-                  'fuel': 'Fuel',
-                  'shopping': 'Shopping',
-                  'online-food': 'Food Delivery',
-                  'dining': 'Dining',
-                  'grocery': 'Grocery',
-                  'travel': 'Travel',
-                  'utility': 'Utility'
-                };
-                const categoryName = categoryLabels[filters.category] || 'Category';
-                return <div className="mb-4 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-200/60 dark:border-emerald-800/30 rounded-xl p-3">
+              const categoryLabels: Record<string, string> = {
+                'fuel': 'Fuel',
+                'shopping': 'Shopping',
+                'online-food': 'Food Delivery',
+                'dining': 'Dining',
+                'grocery': 'Grocery',
+                'travel': 'Travel',
+                'utility': 'Utility'
+              };
+              const categoryName = categoryLabels[filters.category] || 'Category';
+              return <div className="mb-4 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-200/60 dark:border-emerald-800/30 rounded-xl p-3">
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 flex-1">
                         <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-500 flex-shrink-0" />
@@ -602,7 +601,7 @@ const CardListing = () => {
                       </Button>
                     </div>
                   </div>;
-              })()}
+            })()}
 
               {/* Mobile Filter Button */}
               <div className="lg:hidden mb-4 flex items-center justify-between">
