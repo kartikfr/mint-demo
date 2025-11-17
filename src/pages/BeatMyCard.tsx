@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { SpendingInput } from "@/components/ui/spending-input";
 import { ArrowLeft, ArrowRight, Loader2, Trophy, TrendingUp, Award, Sparkles, ChevronDown, Shield, CheckCircle2, Zap, Home } from "lucide-react";
@@ -50,8 +49,6 @@ interface SpendingQuestion {
   min: number;
   max: number;
   step: number;
-  showCurrency?: boolean;
-  suffix?: string;
 }
 const questions: SpendingQuestion[] = [{
   field: 'amazon_spends',
@@ -187,44 +184,6 @@ const questions: SpendingQuestion[] = [{
   max: 50000,
   step: 1000
 }];
-// Normalization helpers to handle API inconsistencies
-const normalizeAlias = (item: any): string => {
-  return item?.seo_card_alias || item?.card_alias || '';
-};
-
-const normalizeCardListItem = (item: any): Card => {
-  return {
-    ...item,
-    seo_card_alias: item.seo_card_alias || item.card_alias
-  };
-};
-
-const getTotalSavings = (item: any): number => {
-  return Number(item.total_savings_yearly ?? item.total_savings ?? 0);
-};
-
-const normalizeBreakdown = (item: any): SpendingBreakdownItem[] => {
-  // If array exists, use it
-  const arr = item.spending_breakdown_array;
-  if (Array.isArray(arr) && arr.length > 0) return arr;
-  
-  // Otherwise, try to convert spending_breakdown object to array
-  const obj = item.spending_breakdown;
-  if (obj && typeof obj === 'object') {
-    return Object.entries(obj).map(([on, v]: any) => ({
-      on,
-      spend: v?.spend ?? 0,
-      points_earned: v?.points_earned ?? 0,
-      savings: v?.savings ?? v ?? 0,
-      explanation: v?.explanation,
-      conv_rate: v?.conv_rate,
-      maxCap: v?.maxCap
-    }));
-  }
-  
-  return [];
-};
-
 const BeatMyCard = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<'select' | 'questions' | 'results'>('select');
@@ -246,11 +205,8 @@ const BeatMyCard = () => {
     try {
       const response = await cardService.getPartnerCards();
       if (response.status === "success" && response.data && Array.isArray(response.data)) {
-        // Normalize all cards to ensure consistent alias usage
-        const normalizedCards = response.data.map(normalizeCardListItem);
-        setCards(normalizedCards);
-        setFilteredCards(normalizedCards);
-        console.info("✅ Fetched and normalized cards:", normalizedCards.length);
+        setCards(response.data);
+        setFilteredCards(response.data);
       } else {
         setCards([]);
         setFilteredCards([]);
@@ -318,138 +274,108 @@ const BeatMyCard = () => {
         school_fees: responses.school_fees || 0
       };
       const calculateResponse = await cardService.calculateCardGenius(completePayload);
-      console.info("📊 Card Genius API Response received");
+      console.log("=== Card Genius API Response ===", calculateResponse);
 
+      // API returns: { status: "success", data: { success: true, savings: [...] } }
       if (calculateResponse.status === "success" && calculateResponse.data?.success && calculateResponse.data?.savings && calculateResponse.data.savings.length > 0) {
         const savingsArray = calculateResponse.data.savings;
-        
-        // Normalize all results for consistent comparison
-        const normalized = savingsArray.map((s: any) => ({
-          ...s,
-          seo_card_alias: s.seo_card_alias || s.card_alias,
-          total_savings_unified: getTotalSavings(s),
-          spending_breakdown_array: normalizeBreakdown(s)
-        }));
-        
-        console.info("✅ Normalized", normalized.length, "card results");
+        console.log("=== Savings Array ===", savingsArray.length, "cards found");
 
-        // Sort by unified total savings to get the top card
-        const sortedCards = [...normalized].sort((a: any, b: any) => {
-          return b.total_savings_unified - a.total_savings_unified;
+        // Sort by total_savings to get the top card
+        const sortedCards = [...savingsArray].sort((a: any, b: any) => {
+          const aSaving = a.total_savings || 0;
+          const bSaving = b.total_savings || 0;
+          return bSaving - aSaving;
         });
         const topCard = sortedCards[0];
-        console.info("🏆 Top card:", topCard?.card_name, "with savings:", topCard?.total_savings_unified);
+        console.log("=== Top Card ===", topCard?.card_name, "with savings:", topCard?.total_savings);
 
-        // Find the user's selected card in the results by matching normalized alias
-        const selectedAlias = normalizeAlias(selectedCard);
-        const userCardInResults = normalized.find((card: any) => card.seo_card_alias === selectedAlias);
-        
-        console.info("🔍 Selected card alias:", selectedAlias);
-        console.info("📌 User card found in results:", !!userCardInResults);
-        
+        // Find the user's selected card in the results by matching seo_card_alias
+        const userCardInResults = savingsArray.find((card: any) => card.seo_card_alias === selectedCard.seo_card_alias);
+        console.log("=== User's Selected Card in Results ===", userCardInResults);
         if (!userCardInResults) {
-          console.warn("⚠️ User's card not found in results, showing top card only");
-          toast.info("Your card wasn't in our comparison, but here's the top recommendation!");
-          // Continue anyway and show results with just the top card
+          console.error("User's card not found in results. Selected:", selectedCard.seo_card_alias);
+          toast.error("Your selected card was not found in the results");
+          return;
         }
+        console.log("=== Fetching detailed card data ===");
+        console.log("User card alias:", selectedCard.seo_card_alias);
+        console.log("Top card alias:", topCard.seo_card_alias);
 
-        console.info("🔄 Fetching detailed card data...");
-        console.info("User card alias for fetch:", selectedAlias);
-        console.info("Top card alias for fetch:", topCard.seo_card_alias);
-
-        // Fetch detailed data for both cards with fallbacks
+        // Try to fetch detailed data for both cards, but use API data as fallback
         let userCardData = null;
         let geniusCardData = null;
-        
         try {
-          const fetchPromises = [];
-          
-          // Only fetch user card if it exists in results
-          if (userCardInResults) {
-            fetchPromises.push(
-              cardService.getCardDetailsByAlias(selectedAlias).catch(err => {
-                console.error("User card fetch failed:", err);
-                return null;
-              })
-            );
+          const [userCard, geniusCard] = await Promise.all([cardService.getCardDetailsByAlias(selectedCard.seo_card_alias).catch(err => {
+            console.error("User card fetch failed:", err);
+            return null;
+          }), cardService.getCardDetailsByAlias(topCard.seo_card_alias).catch(err => {
+            console.error("Genius card fetch failed:", err);
+            return null;
+          })]);
+          console.log("=== User Card Details Response ===", userCard);
+          console.log("=== Genius Card Details Response ===", geniusCard);
+
+          // User's card data - prioritize image from API response
+          if (userCard?.status === "success" && userCard.data?.[0]) {
+            userCardData = {
+              ...userCard.data[0],
+              image: userCardInResults.image || userCard.data[0].image,
+              // Use API image first
+              annual_saving: userCardInResults.total_savings || 0,
+              total_savings_yearly: userCardInResults.total_savings_yearly || 0,
+              spending_breakdown_array: userCardInResults.spending_breakdown_array || []
+            };
           } else {
-            fetchPromises.push(Promise.resolve(null));
-          }
-          
-          fetchPromises.push(
-            cardService.getCardDetailsByAlias(topCard.seo_card_alias).catch(err => {
-              console.error("Genius card fetch failed:", err);
-              return null;
-            })
-          );
-          
-          const [userCard, geniusCard] = await Promise.all(fetchPromises);
-          
-          console.info("📦 User Card Details:", userCard?.status);
-          console.info("📦 Genius Card Details:", geniusCard?.status);
-
-          // Build user's card data
-          if (userCardInResults) {
-            if (userCard?.status === "success" && userCard.data?.[0]) {
-              userCardData = {
-                ...userCard.data[0],
-                seo_card_alias: selectedAlias,
-                image: userCardInResults.image || userCard.data[0].image,
-                annual_saving: userCardInResults.total_savings_unified || 0,
-                total_savings_yearly: userCardInResults.total_savings_yearly || 0,
-                spending_breakdown_array: userCardInResults.spending_breakdown_array || []
-              };
-            } else {
-              // Fallback: Create card data from API response
-              userCardData = {
-                id: userCardInResults.id,
-                name: userCardInResults.card_name || selectedCard.name,
-                seo_card_alias: selectedAlias,
-                image: userCardInResults.image || selectedCard.image || '',
-                annual_saving: userCardInResults.total_savings_unified || 0,
-                total_savings_yearly: userCardInResults.total_savings_yearly || 0,
-                spending_breakdown_array: userCardInResults.spending_breakdown_array || [],
-                banks: selectedCard.banks || { name: userCardInResults.card_name?.split(' ')[0] || '' }
-              };
-              console.info("Using fallback user card data");
-            }
+            // Fallback to selected card data with API savings and image
+            userCardData = {
+              ...selectedCard,
+              image: userCardInResults.image || selectedCard.image,
+              // Use API image first
+              name: userCardInResults.card_name || selectedCard.name,
+              annual_saving: userCardInResults.total_savings || 0,
+              total_savings_yearly: userCardInResults.total_savings_yearly || 0,
+              spending_breakdown_array: userCardInResults.spending_breakdown_array || []
+            };
+            console.log("Using fallback user card data");
           }
 
-          // Build genius card data
+          // Genius card data - prioritize image from API response
           if (geniusCard?.status === "success" && geniusCard.data?.[0]) {
             geniusCardData = {
               ...geniusCard.data[0],
-              seo_card_alias: topCard.seo_card_alias,
               image: topCard.image || geniusCard.data[0].image,
-              annual_saving: topCard.total_savings_unified || 0,
+              // Use API image first
+              annual_saving: topCard.total_savings || 0,
               total_savings_yearly: topCard.total_savings_yearly || 0,
               spending_breakdown_array: topCard.spending_breakdown_array || []
             };
           } else {
-            // Fallback: Create card data from API response
+            // Fallback: Create card data from API response with API image
             geniusCardData = {
               id: topCard.id,
               name: topCard.card_name,
               seo_card_alias: topCard.seo_card_alias,
               image: topCard.image || '',
-              annual_saving: topCard.total_savings_unified || 0,
+              // Use API image directly
+              annual_saving: topCard.total_savings || 0,
               total_savings_yearly: topCard.total_savings_yearly || 0,
               spending_breakdown_array: topCard.spending_breakdown_array || [],
-              banks: { name: topCard.card_name?.split(' ')[0] || '' }
+              banks: {
+                name: topCard.card_name.split(' ')[0]
+              } // Extract bank name from card name
             };
-            console.info("Using fallback genius card data");
+            console.log("Using fallback genius card data:", geniusCardData);
           }
-          
-          console.info("✅ User Card Data ready:", !!userCardData);
-          console.info("✅ Genius Card Data ready:", !!geniusCardData);
+          console.log("=== Setting User Card Data ===", userCardData);
+          console.log("=== Setting Genius Card Data ===", geniusCardData);
 
-          // Calculate category-wise savings (handles null userCardData gracefully)
+          // Calculate category-wise savings
           const categoryBreakdown = calculateCategorySavings(responses, userCardData, geniusCardData);
           setCategorySavings(categoryBreakdown);
           setUserCardData(userCardData);
           setGeniusCardData(geniusCardData);
-          
-          console.info("🎯 Transitioning to results step");
+          console.log("=== Setting step to results ===");
           setStep('results');
         } catch (error) {
           console.error("Error processing card data:", error);
@@ -466,7 +392,7 @@ const BeatMyCard = () => {
       setIsCalculating(false);
     }
   };
-  const calculateCategorySavings = (spending: SpendingData, userCard: Card | null, geniusCard: Card): CategorySavings[] => {
+  const calculateCategorySavings = (spending: SpendingData, userCard: Card, geniusCard: Card): CategorySavings[] => {
     const categories: CategorySavings[] = [];
 
     // Map of spending categories to display names and emojis
@@ -550,8 +476,8 @@ const BeatMyCard = () => {
     const userBreakdownMap = new Map<string, number>();
     const geniusBreakdownMap = new Map<string, number>();
 
-    // Populate user card savings by category (handle null gracefully)
-    if (userCard?.spending_breakdown_array) {
+    // Populate user card savings by category
+    if (userCard.spending_breakdown_array) {
       userCard.spending_breakdown_array.forEach(item => {
         if (item.on && item.savings) {
           userBreakdownMap.set(item.on, item.savings);
@@ -567,8 +493,8 @@ const BeatMyCard = () => {
         }
       });
     }
-    
-    console.info("📊 Category breakdown maps created");
+    console.log("=== User Card Breakdown Map ===", Object.fromEntries(userBreakdownMap));
+    console.log("=== Genius Card Breakdown Map ===", Object.fromEntries(geniusBreakdownMap));
 
     // Build category comparison list
     const allCategories = new Set([...userBreakdownMap.keys(), ...geniusBreakdownMap.keys()]);
@@ -593,16 +519,22 @@ const BeatMyCard = () => {
     // Sort by the higher saving value between the two cards
     return categories.sort((a, b) => Math.max(b.userSaving, b.geniusSaving) - Math.max(a.userSaving, a.geniusSaving));
   };
-  const isUserWinner = userCardData && geniusCardData && (userCardData.annual_saving ?? 0) >= (geniusCardData.annual_saving ?? 0);
+  const isUserWinner = userCardData && geniusCardData && userCardData.annual_saving >= geniusCardData.annual_saving;
 
   // Render card selection
   if (step === 'select') {
     return <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8 pt-24">
+        <div className="container mx-auto px-4 py-8">
           {/* Header with Home Button */}
           <div className="flex items-center justify-between mb-8">
-            
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/')} 
+              className="gap-2 hover:bg-primary/10"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Home</span>
+            </Button>
           </div>
 
           <div className="max-w-4xl mx-auto">
@@ -610,7 +542,7 @@ const BeatMyCard = () => {
               <h1 className="text-5xl md:text-6xl font-bold mb-5 bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
                 Beat My Card
               </h1>
-              <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto md:text-lg">
+              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
                 Select your current card and see if Card Genius can find a better match
               </p>
               
@@ -641,89 +573,76 @@ const BeatMyCard = () => {
   if (step === 'questions') {
     const question = questions[currentStep];
     const progress = (currentStep + 1) / questions.length * 100;
-    
-    const handleSkipAll = () => {
-      calculateResults();
-    };
-    
-    const handleSkipQuestion = () => {
-      if (currentStep < questions.length - 1) {
-        setCurrentStep(prev => prev + 1);
-      } else {
-        calculateResults();
-      }
-    };
-    
     return <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8 pt-24">
-          <div className="max-w-3xl mx-auto">
-            {/* Progress Bar */}
+        <div className="container mx-auto px-4 py-8">
+          {/* Header with Navigation */}
+          <div className="flex items-center justify-between mb-8">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/')} 
+              className="gap-2 hover:bg-primary/10"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Home</span>
+            </Button>
+            
+            <Button variant="ghost" onClick={() => setStep('select')} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Card Selection
+            </Button>
+          </div>
+
+          <div className="max-w-2xl mx-auto">
+            {/* Progress bar */}
             <div className="mb-8">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Question {currentStep + 1} of {questions.length}
-                </span>
-                <span className="text-sm font-medium text-primary">
-                  {Math.round(progress)}% Complete
-                </span>
+              <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                <span>Question {currentStep + 1} of {questions.length}</span>
+                <span>{Math.round(progress)}% Complete</span>
               </div>
-              <div className="h-2.5 bg-secondary/20 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-secondary to-primary transition-all duration-500 ease-out rounded-full" style={{
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300" style={{
                 width: `${progress}%`
               }} />
               </div>
             </div>
 
-            {/* Question Card */}
-            <div className="bg-card border border-border rounded-3xl p-8 md:p-10 shadow-lg">
-              <h2 className="text-2xl md:text-3xl font-bold mb-8 text-foreground flex items-center gap-3">
-                {question.question} <span className="text-4xl">{question.emoji}</span>
-              </h2>
-
-              <SpendingInput question={question.question} emoji={question.emoji} value={responses[question.field] || 0} onChange={value => setResponses(prev => ({
-              ...prev,
+            {/* Question card */}
+            <div className="bg-card border border-border rounded-2xl p-8 shadow-lg mb-6">
+              <SpendingInput question={question.question} emoji={question.emoji} value={responses[question.field] || 0} onChange={value => setResponses({
+              ...responses,
               [question.field]: value
-            }))} min={question.min} max={question.max} step={question.step} showCurrency={question.showCurrency} suffix={question.suffix} />
+            })} min={question.min} max={question.max} step={question.step} />
+            </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 mt-10">
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  onClick={handlePrev} 
-                  disabled={currentStep === 0} 
-                  className="flex-1 border-2 hover:bg-secondary/10 text-base py-6"
-                >
-                  <ArrowLeft className="w-5 h-5 mr-2" />
+            {/* Navigation buttons */}
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={handlePrev} disabled={currentStep === 0} className="flex-1">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
                   Previous
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  onClick={handleSkipAll} 
-                  className="sm:flex-1 border-2 hover:bg-muted text-base py-6"
-                >
-                  Skip All
-                </Button>
-                <Button 
-                  size="lg" 
-                  onClick={handleNext} 
-                  className="flex-1 bg-primary hover:bg-primary/90 text-base py-6"
-                >
-                  {currentStep === questions.length - 1 ? 'Show Results' : 'Next'}
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                <Button onClick={handleNext} disabled={isCalculating} className="flex-1">
+                  {isCalculating ? <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Calculating...
+                    </> : currentStep === questions.length - 1 ? <>
+                      See Results
+                      <Sparkles className="ml-2 h-4 w-4" />
+                    </> : <>
+                      Next
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>}
                 </Button>
               </div>
-              
-              {/* Skip this question link */}
-              <div className="text-center mt-6">
-                <button 
-                  onClick={handleSkipQuestion}
-                  className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
-                >
-                  Skip this question →
-                </button>
+
+              {/* Skip buttons */}
+              <div className="flex gap-3">
+                <Button variant="ghost" onClick={handleSkip} className="flex-1 text-muted-foreground">
+                  Skip Question
+                </Button>
+                <Button variant="ghost" onClick={handleSkipAll} disabled={isCalculating} className="flex-1 text-muted-foreground">
+                  {isCalculating ? "Calculating..." : "Skip All & See Results"}
+                </Button>
               </div>
             </div>
           </div>
@@ -735,9 +654,360 @@ const BeatMyCard = () => {
   if (step === 'results' && userCardData && geniusCardData) {
     const savingsDifference = Math.abs(geniusCardData.annual_saving - userCardData.annual_saving);
     return <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8 pt-24">
-          {/* Rest of existing results content */}
+        <div className="container mx-auto px-4 py-8">
+          {/* Header with Home Button */}
+          <div className="flex items-center justify-between mb-8">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/')} 
+              className="gap-2 hover:bg-primary/10"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Home</span>
+            </Button>
+          </div>
+
+          <div className="max-w-6xl mx-auto">
+            {/* Verdict Section */}
+            <div className="text-center mb-12 animate-fade-in">
+              <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full mb-6 animate-scale-in ${isUserWinner ? 'bg-gradient-to-br from-primary/30 to-primary/10 shadow-lg shadow-primary/20' : 'bg-gradient-to-br from-secondary/30 to-secondary/10 shadow-lg shadow-secondary/20'}`}>
+                <Trophy className={`w-14 h-14 ${isUserWinner ? 'text-primary' : 'text-secondary'}`} />
+              </div>
+              
+              <h1 className="text-6xl font-bold mb-6">
+                <span className={`bg-gradient-to-r ${isUserWinner ? 'from-primary to-primary/70' : 'from-secondary to-secondary/70'} bg-clip-text text-transparent`}>
+                  {isUserWinner ? 'Perfect Match!' : 'We Found Better!'}
+                </span>
+              </h1>
+
+              {isUserWinner ? <div className="space-y-3">
+                  <p className="text-3xl font-bold text-primary">
+                    You Win! 🎉
+                  </p>
+                  <p className="text-xl text-foreground max-w-2xl mx-auto leading-relaxed">
+                    Excellent choice! Your <span className="font-bold text-primary">{userCardData.name}</span> is already optimized for your spending pattern.
+                  </p>
+                  <p className="text-lg text-muted-foreground">
+                    You're already maximizing your rewards!
+                  </p>
+                </div> : <div className="space-y-3">
+                  <p className="text-3xl font-bold text-secondary">
+                    Card Genius Wins! 🏆
+                  </p>
+                  <p className="text-xl text-foreground max-w-2xl mx-auto leading-relaxed">
+                    Switch to <span className="font-bold text-secondary">{geniusCardData.name}</span> and save an extra <span className="font-bold text-secondary">₹{savingsDifference.toLocaleString('en-IN')}</span> per year!
+                  </p>
+                  <p className="text-lg text-muted-foreground">
+                    That's ₹{Math.round(savingsDifference / 12).toLocaleString('en-IN')} more every month
+                  </p>
+                </div>}
+            </div>
+
+            {/* Savings Comparison Bar */}
+            {!isUserWinner && <div className="mb-12 animate-fade-in bg-card border border-border rounded-2xl p-6">
+                <h3 className="text-center text-lg font-semibold mb-4 text-foreground">Annual Savings Comparison</h3>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-medium text-muted-foreground">Your Card</span>
+                      <span className="text-sm font-bold text-foreground">₹{userCardData.annual_saving.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="h-8 bg-muted rounded-lg overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-primary/60 to-primary flex items-center justify-end pr-3 text-white text-sm font-semibold transition-all duration-1000" style={{
+                    width: `${userCardData.annual_saving / geniusCardData.annual_saving * 100}%`
+                  }}>
+                        {(userCardData.annual_saving / geniusCardData.annual_saving * 100).toFixed(0)}%
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <ArrowRight className="w-6 h-6 text-secondary animate-pulse" />
+                  
+                  <div className="flex-1">
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-medium text-muted-foreground">Card Genius</span>
+                      <span className="text-sm font-bold text-secondary">₹{geniusCardData.annual_saving.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="h-8 bg-muted rounded-lg overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-secondary to-secondary/70 flex items-center justify-end pr-3 text-white text-sm font-semibold transition-all duration-1000" style={{
+                    width: '100%'
+                  }}>
+                        100%
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6 text-center">
+                  <div className="inline-flex items-center gap-2 bg-secondary/10 text-secondary px-4 py-2 rounded-full">
+                    <TrendingUp className="w-5 h-5" />
+                    <span className="font-semibold">
+                      {((geniusCardData.annual_saving - userCardData.annual_saving) / userCardData.annual_saving * 100).toFixed(1)}% Higher Savings
+                    </span>
+                  </div>
+                </div>
+              </div>}
+
+            {/* Card Comparison */}
+            <div className="grid md:grid-cols-2 gap-8 mb-12">
+              {/* User's Card */}
+              <div className={`animate-fade-in relative bg-card rounded-3xl overflow-hidden transition-all duration-300 ${isUserWinner ? 'border-4 border-primary shadow-2xl shadow-primary/30 scale-105' : 'border-2 border-border hover:border-primary/50'}`}>
+                {isUserWinner && <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-primary to-primary/80 py-2 px-4 flex items-center justify-center gap-2 animate-fade-in">
+                    <Trophy className="w-5 h-5 text-white" />
+                    <span className="text-white font-bold text-sm">WINNER - YOUR CHOICE</span>
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>}
+                
+                <div className={`p-6 ${isUserWinner ? 'pt-16' : ''}`}>
+                  <div className="bg-gradient-to-br from-muted/50 to-muted rounded-2xl p-6 mb-4">
+                    <img src={userCardData.image} alt={userCardData.name} className="w-full h-52 object-contain drop-shadow-2xl" onError={e => {
+                    console.error("Failed to load user card image:", userCardData.image);
+                    e.currentTarget.src = '/placeholder.svg';
+                  }} />
+                  </div>
+                  
+                  <div className="text-center mb-4">
+                    <h3 className="text-2xl font-bold mb-2 text-foreground">{userCardData.name}</h3>
+                    <p className="text-muted-foreground font-medium">{userCardData.banks?.name || 'Credit Card'}</p>
+                    {userCardData.card_type && <span className="inline-block mt-2 px-3 py-1 bg-muted rounded-full text-xs font-semibold uppercase text-muted-foreground">
+                        {userCardData.card_type}
+                      </span>}
+                  </div>
+                  
+                  <div className={`rounded-2xl p-6 text-center mb-4 ${isUserWinner ? 'bg-primary/10' : 'bg-muted/50'}`}>
+                    <p className="text-sm text-muted-foreground mb-2 uppercase tracking-wide font-semibold">Annual Savings</p>
+                    <p className={`text-5xl font-bold ${isUserWinner ? 'text-primary' : 'text-foreground'}`}>
+                      ₹{userCardData.annual_saving?.toLocaleString('en-IN') || '0'}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      ≈ ₹{Math.round((userCardData.annual_saving || 0) / 12).toLocaleString('en-IN')}/month
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm">
+                    {userCardData.joining_fees && <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Joining Fee</span>
+                        <span className="font-bold text-foreground">₹{userCardData.joining_fees}</span>
+                      </div>}
+                    {userCardData.annual_fee && <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Annual Fee</span>
+                        <span className="font-bold text-foreground">₹{userCardData.annual_fee}</span>
+                      </div>}
+                    {userCardData.welcome_bonus && <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Welcome Bonus</span>
+                        <span className="font-bold text-foreground">{userCardData.welcome_bonus}</span>
+                      </div>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Genius Card */}
+              <div className={`animate-fade-in relative bg-card rounded-3xl overflow-hidden transition-all duration-300 ${!isUserWinner ? 'border-4 border-secondary shadow-2xl shadow-secondary/30 scale-105' : 'border-2 border-border hover:border-secondary/50'}`}>
+                {!isUserWinner && <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-secondary to-secondary/80 py-2 px-4 flex items-center justify-center gap-2 animate-fade-in">
+                    <Trophy className="w-5 h-5 text-white" />
+                    <span className="text-white font-bold text-sm">WINNER - CARD GENIUS RECOMMENDATION</span>
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>}
+                
+                <div className={`p-6 ${!isUserWinner ? 'pt-16' : ''}`}>
+                  <div className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl p-6 mb-4">
+                    <img src={geniusCardData.image} alt={geniusCardData.name} className="w-full h-52 object-contain drop-shadow-2xl" onError={e => {
+                    console.error("Failed to load genius card image:", geniusCardData.image);
+                    e.currentTarget.src = '/placeholder.svg';
+                  }} />
+                  </div>
+                  
+                  <div className="text-center mb-4">
+                    <h3 className="text-2xl font-bold mb-2 text-foreground">{geniusCardData.name}</h3>
+                    <p className="text-muted-foreground font-medium">{geniusCardData.banks?.name || 'Credit Card'}</p>
+                    {geniusCardData.card_type && <span className="inline-block mt-2 px-3 py-1 bg-secondary/10 rounded-full text-xs font-semibold uppercase text-secondary">
+                        {geniusCardData.card_type}
+                      </span>}
+                  </div>
+                  
+                  <div className={`rounded-2xl p-6 text-center mb-4 ${!isUserWinner ? 'bg-secondary/10' : 'bg-muted/50'}`}>
+                    <p className="text-sm text-muted-foreground mb-2 uppercase tracking-wide font-semibold">Annual Savings</p>
+                    <p className={`text-5xl font-bold ${!isUserWinner ? 'text-secondary' : 'text-foreground'}`}>
+                      ₹{geniusCardData.annual_saving?.toLocaleString('en-IN') || '0'}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      ≈ ₹{Math.round((geniusCardData.annual_saving || 0) / 12).toLocaleString('en-IN')}/month
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm">
+                    {geniusCardData.joining_fees && <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Joining Fee</span>
+                        <span className="font-bold text-foreground">₹{geniusCardData.joining_fees}</span>
+                      </div>}
+                    {geniusCardData.annual_fee && <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Annual Fee</span>
+                        <span className="font-bold text-foreground">₹{geniusCardData.annual_fee}</span>
+                      </div>}
+                    {geniusCardData.welcome_bonus && <div className="flex justify-between items-center py-2 border-b border-border/50">
+                        <span className="text-muted-foreground">Welcome Bonus</span>
+                        <span className="font-bold text-secondary">{geniusCardData.welcome_bonus}</span>
+                      </div>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Why This Card Wins */}
+            <div className="mb-12 animate-fade-in">
+              <div className="bg-card border border-border rounded-2xl p-8">
+                <h3 className={`text-2xl font-bold text-center mb-6 ${isUserWinner ? 'text-primary' : 'text-secondary'}`}>
+                  {isUserWinner ? '✨ Why Your Card is Perfect' : '🚀 Why Switch to This Card?'}
+                </h3>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="text-center p-4">
+                    <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${isUserWinner ? 'bg-primary/10' : 'bg-secondary/10'}`}>
+                      <Trophy className={`w-8 h-8 ${isUserWinner ? 'text-primary' : 'text-secondary'}`} />
+                    </div>
+                    <h4 className="font-semibold text-lg mb-2 text-foreground">Maximum Rewards</h4>
+                    <p className="text-muted-foreground text-sm">
+                      Optimized for your spending pattern to maximize cashback and rewards
+                    </p>
+                  </div>
+                  <div className="text-center p-4">
+                    <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${isUserWinner ? 'bg-primary/10' : 'bg-secondary/10'}`}>
+                      <TrendingUp className={`w-8 h-8 ${isUserWinner ? 'text-primary' : 'text-secondary'}`} />
+                    </div>
+                    <h4 className="font-semibold text-lg mb-2 text-foreground">Better Savings</h4>
+                    <p className="text-muted-foreground text-sm">
+                      {isUserWinner ? 'Already the best card for your lifestyle and expenses' : `Save ₹${savingsDifference.toLocaleString('en-IN')} more annually compared to your current card`}
+                    </p>
+                  </div>
+                  <div className="text-center p-4">
+                    <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${isUserWinner ? 'bg-primary/10' : 'bg-secondary/10'}`}>
+                      <Award className={`w-8 h-8 ${isUserWinner ? 'text-primary' : 'text-secondary'}`} />
+                    </div>
+                    <h4 className="font-semibold text-lg mb-2 text-foreground">Smart Choice</h4>
+                    <p className="text-muted-foreground text-sm">
+                      {isUserWinner ? 'Your spending habits perfectly align with this card\'s benefits' : 'Better rewards across all your spending categories'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Category-wise Savings Breakdown */}
+            {categorySavings.length > 0 && <div className="mb-12 max-w-4xl mx-auto animate-fade-in">
+                <Accordion type="single" collapsible className="bg-card border border-border rounded-2xl overflow-hidden">
+                  <AccordionItem value="breakdown" className="border-none">
+                    <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary/10">
+                          <TrendingUp className="w-5 h-5 text-secondary" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-lg font-bold text-foreground">Category-wise Savings Breakdown</h3>
+                          <p className="text-sm text-muted-foreground">See how you earn rewards across different spending categories</p>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-6">
+                      <div className="space-y-4 pt-4">
+                        {categorySavings.map((category, index) => {
+                      const difference = category.geniusSaving - category.userSaving;
+                      const percentDiff = category.userSaving > 0 ? (difference / category.userSaving * 100).toFixed(0) : '100';
+                      return <div key={index} className="bg-muted/30 rounded-xl p-4 hover:bg-muted/50 transition-colors">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-2xl">{category.emoji}</span>
+                                  <span className="font-semibold text-foreground">{category.category}</span>
+                                </div>
+                                {difference > 0 && <span className="text-xs font-bold text-secondary bg-secondary/10 px-3 py-1 rounded-full">
+                                    +₹{difference.toLocaleString('en-IN')} more
+                                  </span>}
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Your Card</p>
+                                  <div className="flex items-baseline gap-2">
+                                    <p className="text-xl font-bold text-foreground">₹{category.userSaving.toLocaleString('en-IN')}</p>
+                                    <p className="text-xs text-muted-foreground">/ year</p>
+                                  </div>
+                                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                    <div className="h-full bg-gradient-to-r from-primary/60 to-primary transition-all duration-500" style={{
+                                width: category.geniusSaving > 0 ? `${category.userSaving / category.geniusSaving * 100}%` : '100%'
+                              }} />
+                                  </div>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Card Genius</p>
+                                  <div className="flex items-baseline gap-2">
+                                    <p className="text-xl font-bold text-secondary">₹{category.geniusSaving.toLocaleString('en-IN')}</p>
+                                    <p className="text-xs text-muted-foreground">/ year</p>
+                                  </div>
+                                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                    <div className="h-full bg-gradient-to-r from-secondary to-secondary/70 transition-all duration-500" style={{
+                                width: '100%'
+                              }} />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>;
+                    })}
+                        
+                        <div className="bg-gradient-to-r from-secondary/10 to-primary/10 rounded-xl p-5 border-2 border-secondary/20 mt-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-secondary/20">
+                                <Trophy className="w-6 h-6 text-secondary" />
+                              </div>
+                              <div>
+                                <p className="text-sm text-muted-foreground uppercase tracking-wide mb-1">Total Annual Savings</p>
+                                <div className="flex items-center gap-4">
+                                  <div>
+                                    <span className="text-xs text-muted-foreground">Your Card: </span>
+                                    <span className="text-lg font-bold text-foreground">₹{userCardData?.annual_saving?.toLocaleString('en-IN')}</span>
+                                  </div>
+                                  <ArrowRight className="w-4 h-4 text-secondary" />
+                                  <div>
+                                    <span className="text-xs text-muted-foreground">Card Genius: </span>
+                                    <span className="text-2xl font-bold text-secondary">₹{geniusCardData?.annual_saving?.toLocaleString('en-IN')}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>}
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
+              <Button variant="outline" size="lg" onClick={() => {
+              setStep('select');
+              setCurrentStep(0);
+              setResponses({});
+              setSelectedCard(null);
+              setUserCardData(null);
+              setGeniusCardData(null);
+              setCategorySavings([]);
+            }} className="text-lg px-8">
+                Try Another Card
+              </Button>
+              {!isUserWinner && <Button size="lg" onClick={() => {
+              const bankName = geniusCardData.banks?.name || geniusCardData.name.split(' ')[0];
+              openRedirectInterstitial({
+                bankName: bankName,
+                cardName: geniusCardData.name,
+                cardId: geniusCardData.id,
+                bankLogo: geniusCardData.image
+              });
+            }} className="text-lg px-8 bg-gradient-to-r from-secondary to-secondary/80 hover:from-secondary/90 hover:to-secondary/70">
+                  Apply for Better Card
+                  <TrendingUp className="ml-2 h-5 w-5" />
+                </Button>}
+            </div>
+          </div>
         </div>
       </div>;
   }
@@ -745,7 +1015,6 @@ const BeatMyCard = () => {
   // Loading state for results
   if (step === 'results' && (!userCardData || !geniusCardData)) {
     return <div className="min-h-screen bg-background flex items-center justify-center">
-        <Navigation />
         <div className="text-center">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
           <p className="text-xl text-muted-foreground">Loading comparison results...</p>
@@ -760,7 +1029,6 @@ const BeatMyCard = () => {
     hasGeniusCard: !!geniusCardData
   });
   return <div className="min-h-screen bg-background flex items-center justify-center">
-      <Navigation />
       <div className="text-center max-w-md">
         <p className="text-xl text-muted-foreground mb-4">Something went wrong</p>
         <Button onClick={() => {
