@@ -1,9 +1,7 @@
 import Navigation from "@/components/Navigation";
 import CategoryCardGenius from "@/components/CategoryCardGenius";
-
 const CardGeniusCategory = () => {
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Navigation />
       <CategoryCardGenius />
       
@@ -14,7 +12,7 @@ const CardGeniusCategory = () => {
             <div className="space-y-4">
               <h3 className="font-bold text-xl mb-6">MoneyControl Cards</h3>
               <p className="text-sm opacity-80 leading-relaxed">
-                Helping Indians make smarter credit card decisions with personalized recommendations, detailed comparisons, and expert insights.
+                Helping Indians make smarter credit card decisions with personalized recommendations and detailed comparisons.
               </p>
               <p className="text-sm opacity-80">
                 Compare 100+ cards and find your perfect match.
@@ -48,8 +46,6 @@ const CardGeniusCategory = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default CardGeniusCategory;
