@@ -33,6 +33,46 @@ const categories = {
     filterValue: 'travel'
   }
 };
+
+// Custom USP overrides for specific cards
+const customUSPs: Record<string, Array<{ header: string; description: string; priority: number }>> = {
+  'axis-bank-magnus-credit-card': [
+    {
+      header: "Welcome Voucher Worth ₹12,500",
+      description: "Receive a welcome voucher worth ₹12,500 from Luxe gift cards, The Postcard Hotels, or Yatra upon card activation.",
+      priority: 1
+    },
+    {
+      header: "Unlimited Airport Lounge Access",
+      description: "Complimentary unlimited international lounge visits with Priority Pass, plus 8 guest visits annually. also unlimited domestic lounge visits",
+      priority: 2
+    }
+  ],
+  'amex-gold-credit-card': [
+    {
+      header: "Earn 1 Membership Rewards Point",
+      description: "for every Rs. 50 spent including fuel and utilities spend",
+      priority: 1
+    },
+    {
+      header: "Earn 1,000 bonus Membership Rewards Points",
+      description: "upon completing six transactions of ₹1,000 or more each month",
+      priority: 2
+    }
+  ],
+  'hdfc-millenia-credit-card': [
+    {
+      header: "5% Cashback on Select Merchants",
+      description: "Earn 5% cashback on purchases made through Amazon, Flipkart, Flight & Hotel bookings via PayZapp and SmartBuy, with a minimum transaction size of ₹2,000",
+      priority: 1
+    },
+    {
+      header: "Exclusive Dining Privileges",
+      description: "Enjoy up to 20% savings at premium restaurants across top cities through the Good Food Trail Dining program",
+      priority: 2
+    }
+  ]
+};
 const PopularCreditCards = () => {
   const navigate = useNavigate();
   const [cards, setCards] = useState<any>({});
@@ -114,7 +154,7 @@ const PopularCreditCards = () => {
           {Object.entries(categories).map(([key, category]) => <TabsContent key={key} value={key} className="mt-0">
               <div ref={cardsRef} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {cards[key]?.map((card: any, index: number) => {
-              const topUsps = card.product_usps?.filter((usp: any) => usp.priority <= 2).sort((a: any, b: any) => a.priority - b.priority).slice(0, 2) || [];
+              const topUsps = customUSPs[card.seo_card_alias] || card.product_usps?.filter((usp: any) => usp.priority <= 2).sort((a: any, b: any) => a.priority - b.priority).slice(0, 2) || [];
               return <div key={card.id || index} className="popular-card bg-card rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 group flex flex-col h-full">
                       {/* Card Image */}
                       <div className="relative h-64 overflow-hidden bg-gradient-to-br from-muted to-muted/50 flex-shrink-0">
