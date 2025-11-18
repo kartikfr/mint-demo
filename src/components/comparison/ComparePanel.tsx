@@ -142,7 +142,24 @@ export function ComparePanel({ open, onOpenChange, preSelectedCard }: ComparePan
 
   const renderCellValue = (card: any, row: any) => {
     const value = getNestedValue(card, row.key);
-    if (!value || value === 'N/A' || value === '') return <span className="text-muted-foreground italic">Not Available</span>;
+    
+    // For Fee Structure rows with comments, check both value and comment
+    if (row.key.startsWith('bank_fee_structure.')) {
+      const isCommentRow = row.key.endsWith('_comment');
+      if (!isCommentRow) {
+        // For value rows, check if there's a corresponding comment
+        const commentKey = `${row.key}_comment`;
+        const commentValue = getNestedValue(card, commentKey);
+        // Only show "Not Available" if both value and comment are empty
+        if ((!value || value === 'N/A' || value === '') && (!commentValue || commentValue === 'N/A' || commentValue === '')) {
+          return <span className="text-muted-foreground italic">Not Available</span>;
+        }
+      }
+    } else {
+      // For non-fee-structure fields, use original logic
+      if (!value || value === 'N/A' || value === '') return <span className="text-muted-foreground italic">Not Available</span>;
+    }
+    
     if (row.type === 'rating') return <div className="flex items-center gap-1"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /><span className="font-semibold">{value}</span></div>;
     if (row.type === 'usps') return <div className="space-y-2">{(Array.isArray(value) ? value : []).sort((a: any, b: any) => a.priority - b.priority).map((usp: any, idx: number) => (<div key={idx} className="p-2 bg-muted/50 rounded-lg"><div className="font-semibold text-sm mb-1">{usp.header}</div><div className="text-xs text-muted-foreground">{usp.description}</div></div>))}</div>;
     if (row.type === 'tags') return <div className="flex flex-wrap gap-2">{(Array.isArray(value) ? value : []).map((t: any) => <span key={t.id || t.name} className="px-2 py-1 rounded-full bg-muted text-foreground text-xs">{t.name}</span>)}</div>;
