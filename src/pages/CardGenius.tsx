@@ -715,7 +715,7 @@ const CardGenius = () => {
                         <p className="text-xs font-semibold text-primary mb-2">How it&apos;s calculated:</p>
                         <div className="space-y-1">
                           {details.explanation.map((exp, idx) => <div key={idx} className="text-xs text-foreground" dangerouslySetInnerHTML={{
-                      __html: sanitizeHtml(exp.replace(/On spend of ₹/g, 'On monthly spend of ₹'))
+                      __html: sanitizeHtml(exp.replace(/On spend(s)? of ₹/g, 'On monthly spend$1 of ₹'))
                     }} />)}
                         </div>
                       </div>}
