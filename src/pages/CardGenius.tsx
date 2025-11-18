@@ -224,7 +224,7 @@ const CardGenius = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(true);
-  
+
   // Question refs for IntersectionObserver
   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
   useEffect(() => {
@@ -1286,13 +1286,7 @@ const CardGenius = () => {
         </div>}
 
       {/* Sticky Progress Bar */}
-      {!showResults && (
-        <CardGeniusProgressBar
-          currentStep={currentStep}
-          totalSteps={questions.length}
-          questionRefs={questionRefs}
-        />
-      )}
+      {!showResults && <CardGeniusProgressBar currentStep={currentStep} totalSteps={questions.length} questionRefs={questionRefs} className="my-[5px] py-[25px]" />}
 
       {/* Main Content - Add padding for sticky progress bar */}
       <div className="pt-4"></div>
@@ -1311,14 +1305,11 @@ const CardGenius = () => {
             </div>}
 
           {/* Question Card */}
-          <div 
-            ref={(el) => {
-              if (questionRefs.current) {
-                questionRefs.current[currentStep] = el;
-              }
-            }}
-            className="animate-fade-in"
-          >
+          <div ref={el => {
+            if (questionRefs.current) {
+              questionRefs.current[currentStep] = el;
+            }
+          }} className="animate-fade-in">
             <SpendingInput question={currentQuestion.question} emoji={currentQuestion.emoji} value={responses[currentQuestion.field] || 0} onChange={handleValueChange} min={currentQuestion.min} max={currentQuestion.max} step={currentQuestion.step} showCurrency={currentQuestion.showCurrency} suffix={currentQuestion.suffix} />
           </div>
 

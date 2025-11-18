@@ -15,11 +15,8 @@ import BlogPost from "./pages/BlogPost";
 import About from "./pages/About";
 import RedirectInterstitial from "./pages/RedirectInterstitial";
 import NotFound from "./pages/NotFound";
-
 const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const App = () => <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <ScrollToTop />
       <TooltipProvider>
@@ -30,7 +27,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/cards" element={<CardListing />} />
             <Route path="/cards/:alias" element={<CardDetails />} />
-            <Route path="/card-genius" element={<CardGenius />} />
+            <Route path="/card-genius" element={<CardGenius />} className="my-0 py-0" />
             <Route path="/card-genius-category" element={<CardGeniusCategory />} />
             <Route path="/beat-my-card" element={<BeatMyCard />} />
             <Route path="/redirect" element={<RedirectInterstitial />} />
@@ -42,7 +39,5 @@ const App = () => (
         </ComparisonProvider>
       </TooltipProvider>
     </BrowserRouter>
-  </QueryClientProvider>
-);
-
+  </QueryClientProvider>;
 export default App;
