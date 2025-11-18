@@ -1204,7 +1204,14 @@ const CardGenius = () => {
   }
   return <>
       <Navigation />
-      <div className="min-h-screen bg-gradient-primary pt-16">{/* Added pt-16 for nav spacing */}
+      
+      <CardGeniusProgressBar 
+        currentStep={currentStep}
+        totalSteps={questions.length}
+        questionRefs={questionRefs}
+      />
+      
+      <div className="min-h-screen bg-gradient-primary pt-24 md:pt-28">{/* Added padding for nav + progress bar */}
       {/* Welcome Dialog */}
       <Dialog open={showWelcomeDialog} onOpenChange={setShowWelcomeDialog}>
         <DialogContent className="sm:max-w-lg">

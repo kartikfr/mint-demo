@@ -44,9 +44,22 @@ const Navigation = () => {
                 </div>
             </div>
 
-            <Link to="/#blog" className="text-foreground hover:text-primary transition-colors font-medium">
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                if (window.location.pathname === '/') {
+                  const blogSection = document.getElementById('blog');
+                  if (blogSection) {
+                    blogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                } else {
+                  window.location.href = '/#blog';
+                }
+              }}
+              className="text-foreground hover:text-primary transition-colors font-medium"
+            >
               Blogs
-            </Link>
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -77,9 +90,25 @@ const Navigation = () => {
                 Beat My Card
               </Link>
             </div>
-            <Link to="/#blog" className="block py-2 text-foreground hover:text-primary transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                setIsMobileMenuOpen(false);
+                if (window.location.pathname === '/') {
+                  setTimeout(() => {
+                    const blogSection = document.getElementById('blog');
+                    if (blogSection) {
+                      blogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }, 100);
+                } else {
+                  window.location.href = '/#blog';
+                }
+              }}
+              className="block py-2 text-foreground hover:text-primary transition-colors font-medium text-left w-full"
+            >
               Blogs
-            </Link>
+            </button>
           </div>}
       </div>
     </nav>;

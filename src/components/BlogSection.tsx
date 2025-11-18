@@ -414,7 +414,7 @@ const BlogSection = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-20 bg-gradient-to-br from-muted/30 via-background to-accent/10">
+    <section id="blog" ref={sectionRef} className="py-20 bg-gradient-to-br from-muted/30 via-background to-accent/10 scroll-mt-20">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
