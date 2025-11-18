@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import logo from "@/assets/moneycontrol-logo.png";
+import { CardGeniusProgressBar } from "@/components/CardGeniusProgressBar";
 interface SpendingQuestion {
   field: string;
   question: string;
@@ -223,6 +224,9 @@ const CardGenius = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(true);
+  
+  // Question refs for IntersectionObserver
+  const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
   useEffect(() => {
     setShowWelcomeDialog(true);
   }, []);
@@ -1281,38 +1285,14 @@ const CardGenius = () => {
           </div>
         </div>}
 
-      {/* Progress Bar - Fixed at top */}
-      <div className="fixed top-16 left-0 w-full h-2 bg-muted/30 z-[60]">
-        <div className="h-full bg-primary transition-all duration-300 ease-out" style={{
-          width: `${progress}%`
-        }} role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} />
-      </div>
-
-      {/* Header */}
-      <header className="sticky top-[88px] bg-white/95 backdrop-blur-sm border-b border-charcoal-100 z-50">{/* top-16 (nav) + 2 (progress bar) + 70 spacing */}
-        <div className="container mx-auto px-4 py-4">
-          
-        </div>
-      </header>
-
-      {/* Progress Indicator */}
-      <div className="sticky top-[136px] bg-white border-b border-charcoal-100 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-charcoal-700">
-              Question {currentStep + 1} of {questions.length}
-            </span>
-            <span className="text-sm font-medium text-primary">
-              {Math.round(progress)}% Complete
-            </span>
-          </div>
-          <div className="w-full h-2 bg-charcoal-100 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-accent transition-all duration-500 ease-out" style={{
-              width: `${progress}%`
-            }} />
-          </div>
-        </div>
-      </div>
+      {/* Sticky Progress Bar */}
+      {!showResults && (
+        <CardGeniusProgressBar
+          currentStep={currentStep}
+          totalSteps={questions.length}
+          questionRefs={questionRefs}
+        />
+      )}
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">
@@ -1328,7 +1308,14 @@ const CardGenius = () => {
             </div>}
 
           {/* Question Card */}
-          <div className="animate-fade-in">
+          <div 
+            ref={(el) => {
+              if (questionRefs.current) {
+                questionRefs.current[currentStep] = el;
+              }
+            }}
+            className="animate-fade-in"
+          >
             <SpendingInput question={currentQuestion.question} emoji={currentQuestion.emoji} value={responses[currentQuestion.field] || 0} onChange={handleValueChange} min={currentQuestion.min} max={currentQuestion.max} step={currentQuestion.step} showCurrency={currentQuestion.showCurrency} suffix={currentQuestion.suffix} />
           </div>
 
