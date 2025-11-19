@@ -1291,18 +1291,28 @@ const CardGenius = () => {
                                   </React.Fragment>;
                         })}
                               
-                              {/* Add Domestic and Intl Lounge values */}
+                              {/* Add Domestic and Intl Lounge values - card-specific based on thresholds */}
                               {(domesticLoungeValue > 0 || internationalLoungeValue > 0) && <>
                                 {domesticLoungeValue > 0 && <>
                                   <td className="p-4"></td>
                                   <td className="p-4 text-center font-semibold text-purple-600">
-                                    ₹{domesticLoungeValue.toLocaleString()}
+                                    {(() => {
+                                      const cardDomesticThreshold = card.domestic_lounges_unlocked || 0;
+                                      const actualDomesticVisits = Math.min(userDomesticLoungeVisits, cardDomesticThreshold);
+                                      const cardDomesticValue = actualDomesticVisits * 750;
+                                      return `₹${cardDomesticValue.toLocaleString()}`;
+                                    })()}
                                   </td>
                                 </>}
                                 {internationalLoungeValue > 0 && <>
                                   <td className="p-4"></td>
                                   <td className="p-4 text-center font-semibold text-purple-600">
-                                    ₹{internationalLoungeValue.toLocaleString()}
+                                    {(() => {
+                                      const cardInternationalThreshold = card.international_lounges_unlocked || 0;
+                                      const actualInternationalVisits = Math.min(userInternationalLoungeVisits, cardInternationalThreshold);
+                                      const cardInternationalValue = actualInternationalVisits * 1250;
+                                      return `₹${cardInternationalValue.toLocaleString()}`;
+                                    })()}
                                   </td>
                                 </>}
                               </>}
