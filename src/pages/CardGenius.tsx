@@ -181,6 +181,8 @@ interface CardResult {
   voucher_of?: string | number;
   voucher_bonus?: string | number;
   welcome_benefits: any[];
+  domestic_lounges_unlocked?: number;
+  international_lounges_unlocked?: number;
   spending_breakdown: {
     [key: string]: {
       on: string;
@@ -235,10 +237,15 @@ const CardGenius = () => {
   const currentQuestion = questions[currentStep];
   const progress = (currentStep + 1) / questions.length * 100;
   
-  // Calculate airport lounge values
-  const domesticLoungeValue = (responses['domestic_lounge_usage_quarterly'] || 0) * 750;
-  const internationalLoungeValue = (responses['international_lounge_usage_quarterly'] || 0) * 1250;
-  const totalLoungeValue = domesticLoungeValue + internationalLoungeValue;
+  // Calculate airport lounge values based on user input (will be adjusted per card later)
+  const userDomesticLoungeVisits = responses['domestic_lounge_usage_quarterly'] || 0;
+  const userInternationalLoungeVisits = responses['international_lounge_usage_quarterly'] || 0;
+  
+  // These are the maximum possible values based on user input
+  const maxDomesticLoungeValue = userDomesticLoungeVisits * 750;
+  const maxInternationalLoungeValue = userInternationalLoungeVisits * 1250;
+  const domesticLoungeValue = maxDomesticLoungeValue;
+  const internationalLoungeValue = maxInternationalLoungeValue;
   
   const handleValueChange = (value: number) => {
     setResponses(prev => ({
@@ -353,8 +360,18 @@ const CardGenius = () => {
             const joiningFees = parseInt(saving.joining_fees) || 0;
             const totalSavingsYearly = saving.total_savings_yearly || 0;
             const milestoneOnly = saving.total_extra_benefits || 0;
+            
+            // Get card's lounge thresholds
+            const cardDomesticThreshold = saving.domestic_lounges_unlocked || cardDetails.data?.domestic_lounges_unlocked || 0;
+            const cardInternationalThreshold = saving.international_lounges_unlocked || cardDetails.data?.international_lounges_unlocked || 0;
+            
+            // Calculate actual lounge value based on minimum of user's desired visits and card's threshold
+            const actualDomesticVisits = Math.min(userDomesticLoungeVisits, cardDomesticThreshold);
+            const actualInternationalVisits = Math.min(userInternationalLoungeVisits, cardInternationalThreshold);
+            const cardLoungeValue = (actualDomesticVisits * 750) + (actualInternationalVisits * 1250);
+            
             // Calculate net savings with the new formula: Total Savings + Milestones + Airport Lounges - Joining Fee
-            const netSavings = totalSavingsYearly + milestoneOnly + totalLoungeValue - joiningFees;
+            const netSavings = totalSavingsYearly + milestoneOnly + cardLoungeValue - joiningFees;
             return {
               card_name: cardDetails.data?.card_name || saving.card_name || saving.card_alias,
               card_bg_image: cardBgImage,
@@ -364,7 +381,9 @@ const CardGenius = () => {
               total_savings_yearly: totalSavingsYearly,
               total_extra_benefits: milestoneOnly,
               milestone_benefits_only: milestoneOnly,
-              airport_lounge_value: totalLoungeValue,
+              airport_lounge_value: cardLoungeValue,
+              domestic_lounges_unlocked: cardDomesticThreshold,
+              international_lounges_unlocked: cardInternationalThreshold,
               net_savings: netSavings,
               voucher_of: saving.voucher_of || 0,
               voucher_bonus: saving.voucher_bonus || 0,
@@ -376,7 +395,17 @@ const CardGenius = () => {
             const joiningFees = parseInt(saving.joining_fees) || 0;
             const totalSavingsYearly = saving.total_savings_yearly || 0;
             const milestoneOnly = saving.total_extra_benefits || 0;
-            const netSavings = totalSavingsYearly + milestoneOnly + totalLoungeValue - joiningFees;
+            
+            // Get card's lounge thresholds (fallback case)
+            const cardDomesticThreshold = saving.domestic_lounges_unlocked || 0;
+            const cardInternationalThreshold = saving.international_lounges_unlocked || 0;
+            
+            // Calculate actual lounge value based on minimum of user's desired visits and card's threshold
+            const actualDomesticVisits = Math.min(userDomesticLoungeVisits, cardDomesticThreshold);
+            const actualInternationalVisits = Math.min(userInternationalLoungeVisits, cardInternationalThreshold);
+            const cardLoungeValue = (actualDomesticVisits * 750) + (actualInternationalVisits * 1250);
+            
+            const netSavings = totalSavingsYearly + milestoneOnly + cardLoungeValue - joiningFees;
             return {
               card_name: saving.card_name || saving.card_alias,
               card_bg_image: saving.card_bg_image || '',
@@ -386,7 +415,9 @@ const CardGenius = () => {
               total_savings_yearly: totalSavingsYearly,
               total_extra_benefits: milestoneOnly,
               milestone_benefits_only: milestoneOnly,
-              airport_lounge_value: totalLoungeValue,
+              airport_lounge_value: cardLoungeValue,
+              domestic_lounges_unlocked: cardDomesticThreshold,
+              international_lounges_unlocked: cardInternationalThreshold,
               net_savings: netSavings,
               voucher_of: saving.voucher_of || 0,
               voucher_bonus: saving.voucher_bonus || 0,
@@ -1289,12 +1320,6 @@ const CardGenius = () => {
                               <td className="p-4"></td>
                               <td className="p-4 text-center font-semibold text-red-600">
                                 ₹{card.joining_fees.toLocaleString()}
-                              </td>
-                              <td className="p-4"></td>
-                              <td className="p-4 text-center font-semibold text-purple-600">
-                                {card.airport_lounge_value && card.airport_lounge_value > 0 
-                                  ? `₹${card.airport_lounge_value.toLocaleString()}`
-                                  : '—'}
                               </td>
                               <td className="p-4"></td>
                               <td className="p-4 text-center">
