@@ -140,7 +140,7 @@ const categories = [{
   id: 'grocery',
   name: 'Grocery',
   icon: ShoppingCart,
-  color: 'text-green-500',
+  color: 'text-success-500',
   questions: [{
     field: 'grocery_spends_online',
     question: 'How much do you spend on groceries (Blinkit, Zepto etc.) every month?',
@@ -413,7 +413,7 @@ const CategoryCardGenius = () => {
         {/* Results Section */}
         {results && results.length > 0 ? <div ref={resultsRef} className="animate-fade-in scroll-mt-20">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-6 py-3 rounded-full mb-4 border border-green-200">
+              <div className="inline-flex items-center gap-2 bg-success-50 text-success-700 px-6 py-3 rounded-full mb-4 border border-success-500/20">
                 <TrendingUp className="w-5 h-5" />
                 <span className="font-bold">Your Personalized Results</span>
               </div>
@@ -441,18 +441,18 @@ const CategoryCardGenius = () => {
                     <h3 className="text-xl font-bold mb-4 min-h-[3rem] line-clamp-2">{card.card_name}</h3>
 
                     {/* Savings Highlight - Prominent */}
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-2 border-green-300 dark:border-green-700 rounded-xl p-5 mb-4 shadow-md">
+                    <div className="bg-gradient-to-br from-success-50 to-success-50 dark:from-success-700/10 dark:to-success-700/10 border-2 border-success-500/30 dark:border-success-700 rounded-xl p-5 mb-4 shadow-md">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <TrendingUp className="w-5 h-5 text-green-600" />
-                          <span className="text-sm font-bold text-green-800 dark:text-green-300">You'll Save</span>
+                          <TrendingUp className="w-5 h-5 text-success-700" />
+                          <span className="text-sm font-bold text-success-700 dark:text-success-500">You'll Save</span>
                         </div>
                         <Badge variant="secondary" className="text-xs">Per Year</Badge>
                       </div>
-                      <p className="text-4xl font-black text-green-600 dark:text-green-400 mb-2">
+                      <p className="text-4xl font-black text-success-700 dark:text-success-500 mb-2">
                         ₹{card.total_savings_yearly?.toLocaleString() || '0'}
                       </p>
-                      <p className="text-xs text-green-700 dark:text-green-300 font-medium">
+                      <p className="text-xs text-success-700 dark:text-success-500 font-medium">
                         💰 That's ₹{Math.round((card.total_savings_yearly || 0) / 12).toLocaleString()} every month with your spending pattern!
                       </p>
                     </div>
@@ -462,13 +462,13 @@ const CategoryCardGenius = () => {
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Joining Fee</p>
                         <p className="font-bold text-sm">
-                          {card.joining_fees === 0 || card.joining_fees === '0' ? <span className="text-green-600">FREE</span> : `₹${card.joining_fees?.toLocaleString()}`}
+                          {card.joining_fees === 0 || card.joining_fees === '0' ? <span className="text-success-700">FREE</span> : `₹${card.joining_fees?.toLocaleString()}`}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Annual Fee</p>
                         <p className="font-bold text-sm">
-                          {card.annual_fees === 0 || card.annual_fees === '0' ? <span className="text-green-600">FREE</span> : `₹${card.annual_fees?.toLocaleString()}`}
+                          {card.annual_fees === 0 || card.annual_fees === '0' ? <span className="text-success-700">FREE</span> : `₹${card.annual_fees?.toLocaleString()}`}
                         </p>
                       </div>
                     </div>
@@ -489,7 +489,7 @@ const CategoryCardGenius = () => {
                                 <span className="text-muted-foreground capitalize font-medium">
                                   {category.replace(/_/g, ' ')}
                                 </span>
-                                <span className="font-bold text-green-600">
+                                <span className="font-bold text-success-700">
                                   +₹{savingsValue.toLocaleString()}
                                 </span>
                               </div>

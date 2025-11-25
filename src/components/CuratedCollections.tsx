@@ -24,7 +24,7 @@ const collections = {
     emoji: "✈️",
     aliases: ['hdfc-indigo-credit-card', 'indusind-legend-credit-card', 'amex-gold-credit-card']
   },
-  moneycontrol_picks: {
+  mint_picks: {
     title: "Mint Picks",
     emoji: "⭐",
     aliases: ['hdfc-tata-neu-plus-credit-card', 'axis-bank-magnus-credit-card', 'amex-gold-credit-card']

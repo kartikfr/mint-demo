@@ -97,7 +97,7 @@ const FourKeyUSPs = () => {
     },
     {
       icon: Target,
-      iconColor: "bg-green-500",
+      iconColor: "bg-success-500",
       title: "Beat My Card",
       description: "Test our Card Genius AI v/s Your Card. See the magic!",
       cta: "Get Started",

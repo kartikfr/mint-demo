@@ -644,7 +644,7 @@ const CardGenius = () => {
                   
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-foreground">Your Net Savings</span>
-                    <span className="text-2xl font-bold text-green-600">₹{selectedCard.net_savings.toLocaleString()}</span>
+                    <span className="text-2xl font-bold text-success-700">₹{selectedCard.net_savings.toLocaleString()}</span>
                   </div>
                 </div>
 
@@ -775,9 +775,9 @@ const CardGenius = () => {
                           ₹{pointsEarned.toLocaleString()} × {convRate.toFixed(2)}
                         </div>}
                       
-                      <div className="flex justify-between items-center pt-2 bg-green-50 dark:bg-green-950 -mx-6 px-6 py-4 rounded-b-xl">
+                      <div className="flex justify-between items-center pt-2 bg-success-50 dark:bg-success-700/10 -mx-6 px-6 py-4 rounded-b-xl">
                         <span className="font-semibold text-foreground">Total Savings</span>
-                        <span className="text-2xl font-bold text-green-600">₹{savings.toLocaleString()}</span>
+                        <span className="text-2xl font-bold text-success-700">₹{savings.toLocaleString()}</span>
                       </div>
                     </div>
 
@@ -1253,7 +1253,7 @@ const CardGenius = () => {
                   </thead>
                   <tbody>
                     {filteredResults.map((card, index) => {
-                    return <tr key={index} className={`border-t border-border hover:bg-muted/30 transition-colors cursor-pointer ${index === 0 ? 'bg-green-50/50' : ''}`} onClick={() => handleCardSelect(card)}>
+                    return <tr key={index} className={`border-t border-border hover:bg-muted/30 transition-colors cursor-pointer ${index === 0 ? 'bg-success-50/30' : ''}`} onClick={() => handleCardSelect(card)}>
                           <td className="p-4 sticky left-0 bg-white z-10">
                             <div className="flex items-center gap-4">
                               <img src={card.card_bg_image} alt={card.card_name} className="w-20 h-12 object-contain flex-shrink-0" onError={e => {
@@ -1267,7 +1267,7 @@ const CardGenius = () => {
                           
                           {/* Quick Insights Tab - Show summary data */}
                           {activeTab === 'quick' && <>
-                              <td className="p-4 text-center font-semibold text-green-600">
+                              <td className="p-4 text-center font-semibold text-success-700">
                                 ₹{card.total_savings_yearly.toLocaleString()}
                               </td>
                               <td className="p-4"></td>
@@ -1286,7 +1286,7 @@ const CardGenius = () => {
                               </td>
                               <td className="p-4"></td>
                               <td className="p-4 text-center">
-                                <span className="font-bold text-lg text-green-600">
+                                <span className="font-bold text-lg text-success-700">
                                   ₹{card.net_savings.toLocaleString()}
                                 </span>
                               </td>
@@ -1298,7 +1298,7 @@ const CardGenius = () => {
                           const breakdown = card.spending_breakdown[category];
                           const yearlySavings = breakdown?.savings ? breakdown.savings * 12 : 0;
                           return <React.Fragment key={category}>
-                                    <td className="p-4 text-center font-semibold text-green-600">
+                                    <td className="p-4 text-center font-semibold text-success-700">
                                       ₹{yearlySavings.toLocaleString()}
                                     </td>
                                     {idx < spendingCategories.length - 1 && <td className="p-4"></td>}
@@ -1322,7 +1322,7 @@ const CardGenius = () => {
                               </>}
                               
                               <td className="p-4"></td>
-                              <td className="p-4 text-center font-semibold text-green-600">
+                              <td className="p-4 text-center font-semibold text-success-700">
                                 ₹{card.total_savings_yearly.toLocaleString()}
                               </td>
                               <td className="p-4"></td>
@@ -1341,7 +1341,7 @@ const CardGenius = () => {
                               </td>
                               <td className="p-4"></td>
                               <td className="p-4 text-center">
-                                <span className="font-bold text-lg text-green-700">
+                                <span className="font-bold text-lg text-success-700">
                                   ₹{card.net_savings.toLocaleString()}
                                 </span>
                               </td>

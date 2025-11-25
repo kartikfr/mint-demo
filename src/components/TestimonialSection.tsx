@@ -87,7 +87,7 @@ const TestimonialCard = ({
       </div>
       <div className="text-right">
         <p className="text-xs text-muted-foreground">Saved</p>
-        <p className="text-sm font-bold text-green-600">{testimonial.savings}</p>
+        <p className="text-sm font-bold text-success-700">{testimonial.savings}</p>
       </div>
     </div>
   </div>;
