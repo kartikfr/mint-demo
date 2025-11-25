@@ -741,7 +741,7 @@ const CardListing = () => {
                                     ₹0 Savings/yr
                                   </div>;
                         }
-                        return <div className="absolute top-3 left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 text-sm font-bold z-10">
+                        return <div className="absolute top-3 left-3 bg-gradient-to-r from-success-500 to-success-700 text-white px-3 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 text-sm font-bold z-10">
                                   <Sparkles className="w-4 h-4" />
                                   Save ₹{saving.toLocaleString()}/yr
                                 </div>;

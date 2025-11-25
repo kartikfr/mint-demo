@@ -150,10 +150,10 @@ export default function EligibilityResultDialog({
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle className="w-7 h-7 text-green-500" />
+              <div className="w-12 h-12 rounded-full bg-success-500/10 flex items-center justify-center">
+                <CheckCircle className="w-7 h-7 text-success-500" />
               </div>
-              <DialogTitle className="text-2xl text-green-500">
+              <DialogTitle className="text-2xl text-success-500">
                 You're eligible! 🎉
               </DialogTitle>
             </div>
@@ -167,19 +167,19 @@ export default function EligibilityResultDialog({
               <h3 className="font-semibold text-foreground mb-3">Matched Criteria</h3>
               <div className="space-y-2">
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-4 h-4 text-success-500 mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-muted-foreground">
                     <span className="font-medium text-foreground">Location:</span> Your pincode is supported
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-4 h-4 text-success-500 mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-muted-foreground">
                     <span className="font-medium text-foreground">Income:</span> Meets minimum requirement
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-4 h-4 text-success-500 mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-muted-foreground">
                     <span className="font-medium text-foreground">Employment:</span> Eligible status
                   </p>

@@ -9,16 +9,16 @@ const CardGeniusCTA = () => {
         if (e.key === 'Enter') navigate('/card-genius');
       }} className="max-w-5xl mx-auto bg-gradient-to-br from-emerald-50/80 to-white dark:from-emerald-950/20 dark:to-background rounded-3xl p-10 md:p-14 border-[1.5px] border-emerald-100 dark:border-emerald-900/50 relative overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl group" aria-label="Navigate to Card Genius">
           {/* Decorative gradient blob */}
-          <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-br from-emerald-200/30 to-green-300/20 dark:from-emerald-800/20 dark:to-green-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500" />
+          <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-br from-orange-200/30 to-orange-300/20 dark:from-orange-800/20 dark:to-orange-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500" />
           
           <div className="relative z-10 text-center">
             {/* Icon with gradient background and glow */}
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-emerald-100 to-green-50 dark:from-emerald-900/50 dark:to-green-900/30 mb-6 shadow-lg ring-1 ring-emerald-200/50 dark:ring-emerald-800/50 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-900/50 dark:to-orange-900/30 mb-6 shadow-lg ring-1 ring-orange-200/50 dark:ring-orange-800/50 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
               <Sparkles className="w-10 h-10 text-emerald-600 dark:text-emerald-400 group-hover:animate-pulse" />
             </div>
             
             {/* Heading */}
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-400 dark:to-green-400 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-orange-700 dark:from-orange-400 dark:to-orange-500 bg-clip-text text-transparent">
               AI Super Card Genius
             </h2>
             
