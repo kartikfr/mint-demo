@@ -25,7 +25,7 @@ const collections = {
     aliases: ['hdfc-indigo-credit-card', 'indusind-legend-credit-card', 'amex-gold-credit-card']
   },
   moneycontrol_picks: {
-    title: "MoneyControl Picks",
+    title: "Mint Picks",
     emoji: "⭐",
     aliases: ['hdfc-tata-neu-plus-credit-card', 'axis-bank-magnus-credit-card', 'amex-gold-credit-card']
   }

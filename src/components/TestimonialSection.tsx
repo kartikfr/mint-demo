@@ -36,7 +36,7 @@ const testimonials = [{
   role: "Travel Blogger",
   image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop",
   rating: 5,
-  text: "Got my dream travel card through MoneyControl. Free flights, lounge access, and amazing rewards. Worth every penny!",
+  text: "Got my dream travel card through Mint. Free flights, lounge access, and amazing rewards. Worth every penny!",
   savings: "₹92,000/year"
 }, {
   name: "Ananya Iyer",

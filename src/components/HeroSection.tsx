@@ -76,7 +76,7 @@ const HeroSection = () => {
           <div className="text-center lg:text-left space-y-8">
             <h1 ref={headlineRef} className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-charcoal-900 leading-tight">
               Stop Leaving{" "}
-              <span className="text-[hsl(145,100%,33%)]">
+              <span className="text-[hsl(30,100%,60%)]">
                 Money
               </span>{" "}
               on the Table
