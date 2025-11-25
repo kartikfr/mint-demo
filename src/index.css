@@ -18,19 +18,19 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
     
-    /* MoneyControl Green - Primary Brand */
-    --mc-green-50: 145 100% 97%;
-    --mc-green-100: 145 100% 94%;
-    --mc-green-200: 145 100% 86%;
-    --mc-green-500: 145 100% 33%;
-    --mc-green-600: 145 100% 28%;
-    --mc-green-700: 145 100% 24%;
-    --mc-green-900: 145 80% 16%;
+    /* Mint Orange - Primary Brand */
+    --mint-orange-50: 30 100% 97%;
+    --mint-orange-100: 30 100% 94%;
+    --mint-orange-200: 30 100% 86%;
+    --mint-orange-500: 30 100% 60%;
+    --mint-orange-600: 28 100% 55%;
+    --mint-orange-700: 26 100% 50%;
+    --mint-orange-900: 24 100% 40%;
     
-    /* Primary (Green) */
-    --primary: 145 100% 33%;
+    /* Primary (Orange) */
+    --primary: 30 100% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 145 100% 45%;
+    --primary-glow: 32 100% 65%;
     
     /* Secondary */
     --secondary: 211 100% 40%;
@@ -67,23 +67,23 @@ All colors MUST be HSL.
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
     
-    --accent: 145 100% 96%;
-    --accent-foreground: 145 100% 33%;
+    --accent: 30 100% 96%;
+    --accent-foreground: 30 100% 60%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 145 100% 33%;
+    --ring: 30 100% 60%;
     
     --radius: 0.75rem;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(0 0% 100%), hsl(145 100% 97%));
-    --gradient-accent: linear-gradient(135deg, hsl(145 100% 33%), hsl(145 100% 45%));
-    --gradient-hero: linear-gradient(180deg, hsl(0 0% 100%), hsl(145 100% 98%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --gradient-primary: linear-gradient(135deg, hsl(0 0% 100%), hsl(30 100% 97%));
+    --gradient-accent: linear-gradient(135deg, hsl(30 100% 60%), hsl(32 100% 65%));
+    --gradient-hero: linear-gradient(180deg, hsl(0 0% 100%), hsl(30 100% 98%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(30 90% 98%));
     --gradient-shimmer: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
     
@@ -93,7 +93,7 @@ All colors MUST be HSL.
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.15);
     --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.2);
     --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.25);
-    --shadow-glow: 0 0 30px hsl(145 100% 45% / 0.3);
+    --shadow-glow: 0 0 30px hsl(30 100% 60% / 0.3);
     --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.04);
     --shadow-card-hover: 0 12px 32px hsl(0 0% 0% / 0.12);
     
@@ -112,7 +112,7 @@ All colors MUST be HSL.
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 145 100% 45%;
+    --primary: 30 100% 60%;
     --primary-foreground: 222 47% 11%;
 
     --secondary: 211 100% 50%;
@@ -122,14 +122,14 @@ All colors MUST be HSL.
     --muted-foreground: 215 20% 65%;
 
     --accent: 217 33% 17%;
-    --accent-foreground: 145 100% 45%;
+    --accent-foreground: 30 100% 60%;
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 217 33% 17%;
     --input: 217 33% 17%;
-    --ring: 145 100% 45%;
+    --ring: 30 100% 60%;
   }
 }
 
@@ -163,7 +163,7 @@ All colors MUST be HSL.
       0 30px 80px rgba(0, 0, 0, 0.4),
       0 40px 120px rgba(0, 0, 0, 0.3),
       inset 0 0 0 1px rgba(255, 255, 255, 0.2),
-      0 0 60px rgba(0, 166, 81, 0.3);
+      0 0 60px rgba(255, 153, 51, 0.3);
   }
 
   .perspective-container {

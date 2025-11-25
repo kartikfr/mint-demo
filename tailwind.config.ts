@@ -48,14 +48,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        green: {
-          50: "hsl(var(--mc-green-50))",
-          100: "hsl(var(--mc-green-100))",
-          200: "hsl(var(--mc-green-200))",
-          500: "hsl(var(--mc-green-500))",
-          600: "hsl(var(--mc-green-600))",
-          700: "hsl(var(--mc-green-700))",
-          900: "hsl(var(--mc-green-900))",
+        orange: {
+          50: "hsl(var(--mint-orange-50))",
+          100: "hsl(var(--mint-orange-100))",
+          200: "hsl(var(--mint-orange-200))",
+          500: "hsl(var(--mint-orange-500))",
+          600: "hsl(var(--mint-orange-600))",
+          700: "hsl(var(--mint-orange-700))",
+          900: "hsl(var(--mint-orange-900))",
         },
         charcoal: {
           50: "hsl(var(--charcoal-50))",

@@ -24,7 +24,7 @@ const About = () => {
               Helping Indians Make Smarter Money Decisions
             </h1>
             <p className="text-xl text-muted-foreground leading-relaxed">
-              We started MoneyControl Cards because we were frustrated. Tired of confusing terms, hidden fees, and feeling like we were missing out on rewards we deserved. So we built something better.
+              We started Mint Cards because we were frustrated. Tired of confusing terms, hidden fees, and feeling like we were missing out on rewards we deserved. So we built something better.
             </p>
           </div>
         </div>
@@ -46,7 +46,7 @@ const About = () => {
                 So we asked ourselves: what if choosing a credit card was as simple as answering a few questions about how you actually spend your money? What if someone just showed you the math, in plain language, without the jargon?
               </p>
               <p>
-                That's how MoneyControl Cards was born. Not from a boardroom, but from real frustration with a system that felt designed to confuse rather than help.
+                That's how Mint Cards was born. Not from a boardroom, but from real frustration with a system that felt designed to confuse rather than help.
               </p>
             </div>
           </div>
@@ -124,7 +124,7 @@ const About = () => {
       <section className="py-20 bg-gradient-to-br from-primary/5 via-background to-accent/10">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl font-bold mb-8 text-foreground">Why Choose MoneyControl Cards?</h2>
+            <h2 className="text-4xl font-bold mb-8 text-foreground">Why Choose Mint Cards?</h2>
             <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
               <p>
                 <strong className="text-foreground">We do the homework for you.</strong> Instead of spending hours researching cards, comparing rewards, and calculating which one actually saves you money, you answer a few questions and we show you the answer.
@@ -178,7 +178,7 @@ const About = () => {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-12 mb-12">
             <div className="space-y-4">
-              <h3 className="font-bold text-xl mb-6">MoneyControl Cards</h3>
+              <h3 className="font-bold text-xl mb-6">Mint Cards</h3>
               <p className="text-sm opacity-80 leading-relaxed">
                 Helping Indians make smarter credit card decisions with personalized recommendations, detailed comparisons, and expert insights.
               </p>
@@ -202,7 +202,7 @@ const About = () => {
               <div className="space-y-3 text-sm opacity-80">
                 <p>Have questions? We're here to help!</p>
                 <p className="hover:opacity-100 transition-opacity">
-                  support@moneycontrol.com
+                  support@mint.com
                 </p>
                 <p className="pt-2">
                   Available 24/7 to assist you with your credit card queries.
@@ -211,7 +211,7 @@ const About = () => {
             </div>
           </div>
           <div className="border-t border-background/20 pt-8 text-center text-sm opacity-60">
-            <p>© 2025 MoneyControl Cards. All rights reserved.</p>
+            <p>© 2025 Mint Cards. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -10,7 +10,7 @@ const CardGeniusCategory = () => {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-12 mb-12">
             <div className="space-y-4">
-              <h3 className="font-bold text-xl mb-6">MoneyControl Cards</h3>
+              <h3 className="font-bold text-xl mb-6">Mint Cards</h3>
               <p className="text-sm opacity-80 leading-relaxed">
                 Helping Indians make smarter credit card decisions with personalized recommendations and detailed comparisons.
               </p>
@@ -34,7 +34,7 @@ const CardGeniusCategory = () => {
               <div className="space-y-3 text-sm opacity-80">
                 <p>Have questions? We're here to help!</p>
                 <p className="hover:opacity-100 transition-opacity">
-                  support@moneycontrol.com
+                  support@mint.com
                 </p>
                 <p className="pt-2">
                   Available 24/7 to assist you with your credit card queries.
@@ -43,7 +43,7 @@ const CardGeniusCategory = () => {
             </div>
           </div>
           <div className="border-t border-background/20 pt-8 text-center text-sm opacity-60">
-            <p>© 2025 MoneyControl Cards. All rights reserved.</p>
+            <p>© 2025 Mint Cards. All rights reserved.</p>
           </div>
         </div>
       </footer>
